@@ -1,40 +1,24 @@
-# Tethys Dev Dockerfiles
+# Tethys Deployment Dockerfiles
 # Author: Nathan Swain
 # Description: These Dockerfiles can be used to build images
-# for the tethys apps development environment.
+# for the tethys apps production environment.
 
-# REQUIREMENTS:
-* Ubuntu >= 12.04 other docker-compatible Linux
-* Docker (see https://www.docker.io/gettingstarted/#h_installation)
-* Internet connection
+## UNDER CONSTRUCTION
 
-There are two methods for getting the tethys docker container images:
-
-1. Pull from Docker Public Repository
+# To get pre-built images:
 sudo docker pull swainn/ckan_data:dev swainn/tethys_base:dev
 
-2. Build from Source Dockerfiles:
-
-# Create working directory. NOTE: This directory can be located wherever you would like, but be sure to use your custom path in the following steps if you don't use the suggested directory.
-mkdir ~/tethysdev
-
-# Retrive tethys_docker repository:
-cd ~/tethysdev
-git clone https://swainn@bitbucket.org/swainn/tethys_docker.git
-
-# Build from Dockerfiles (ckan_base is a dependency of tethys_base):
-cd ~/tethysdev/tethys_docker/development/ckan_data
+# To Build from Scratch (ckan_base is a dependency of tethys_base):
+cd /path_to/ckanext-tethys_apps/docker/dev/ckan_data
 sudo docker build -t ckan_data:dev .
 
-cd ~/tethysdev/tethys_docker/development/ckan_base
+cd /path_to/ckanext-tethys_apps/docker/dev/ckan_base
 sudo docker build -t ckan_base:dev .
 
-cd ~/tethysdev/tethys_docker/development/tethys_base
+cd /path_to/ckanext-tethys_apps/docker/dev/tethys_base
 sudo docker build -t tethys_base:dev .
 
-NOTE: Sometimes the build will fail due connection problems with the Ubuntu apt repositories. It may be necessary to run the docker build command MANY times before it finally succeeds.
-
-# USAGE:
+# To Use:
 
 1. Start up an instance of the ckan_data image (ports 5432 and 8080 are exposed for postgresql and jetty, respectively)
 
