@@ -1,0 +1,7 @@
+# Tethys Docker README
+# Author: Nathan Swain
+
+This project houses the source Dockerfiles and resources for the Tethys Apps project docker images. The container images built using these docker files can be used to easily deploy an instance of Tethys Apps or launch a new development environment for Tethys Apps.
+
+See the README files in the respective directory for more details.
+

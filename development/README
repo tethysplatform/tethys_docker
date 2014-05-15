@@ -1,0 +1,54 @@
+# Tethys Dev Dockerfiles
+# Author: Nathan Swain
+# Description: These Dockerfiles can be used to build images
+# for the tethys development environment.
+
+
+# To get pre-built images:
+sudo docker pull swainn/ckan_data:dev swainn/tethys_base:dev
+
+# To Build from Scratch (ckan_base is a dependency of tethys_base):
+cd /path_to/ckanext-tethys_apps/docker/dev/ckan_data
+sudo docker build -t ckan_data:dev .
+
+cd /path_to/ckanext-tethys_apps/docker/dev/ckan_base
+sudo docker build -t ckan_base:dev .
+
+cd /path_to/ckanext-tethys_apps/docker/dev/tethys_base
+sudo docker build -t tethys_base:dev .
+
+# To Use:
+
+1. Start up an instance of the ckan_data image (ports 5432 and 8080 are exposed for postgresql and jetty, respectively)
+
+sudo docker run -d -p 5432:5432 -p 8080:8080 --name ckan_db swainn/ckan_data_worker
+
+2. Start up an instance of the tethys_base image (port 5000 is exposed)
+
+sudo docker run -i -t -p 80:5000 --link ckan_db:data --volumes-from ckan_data_worker --name tethys_dev_worker swainn/tethys_base:dev
+
+# Explanation
+All of the data (postgresql, filestore, and solr) is stored in the ckan_data container. This container is not likely to
+change to allow you to persist your data as you update the tethys_base development image. A superuser has been setup on 
+the postgresql database so that you can inspect/modify the database using a client such as pgadminIII. To do so, use the
+following credentials:
+
+Username: tethys
+Password: tethys
+
+# To Inspect Data, bind to the data volumes:
+sudo docker run --rm -i -t --volumes-from ckan_data ubuntu bash
+
+Useful volumes include:
+/etc/postgresql
+/var/log/postgresql
+/var/lib/postgresql
+/var/lib/ckan/default
+/etc/solr/conf
+/var/log/supervisor
+
+The last one (/var/log/supervisor) contains logs for Jetty and PostgreSQL that can be used for debugging.
+
+
+
+
