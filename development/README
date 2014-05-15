@@ -1,12 +1,21 @@
-# Tethys Dev Dockerfiles
+# Tethys Development Dockerfiles
 # Author: Nathan Swain
 # Description: These Dockerfiles can be used to build images
 # for the tethys apps development environment.
 
-# REQUIREMENTS:
+# REQUIREMENTS
+
 * Ubuntu >= 12.04 other docker-compatible Linux
 * Docker (see https://www.docker.io/gettingstarted/#h_installation)
 * Internet connection
+
+# EXPLANATION
+
+There are three docker container images that are needed to startup a new instance of the tethys apps development environment: ckan_data, ckan_base, and tethys_base. The ckan_base image provides a fresh source installation of CKAN without the data components (postgresql, filestore, datastore, solr)  and it is a dependency of the tethys_base image. The tethys_base image adds the tethys_apps and ciwater_theme plugins to the ckan_base installation.
+
+To run either the ckan_base or tethys_base images, they must be linked to an instance of the ckan_data image. This images houses all of the data components of CKAN and allow you to retain your data (users, datasets, resources, etc.) when you use updated versions of the ckan_base or tethys_base dockers.
+
+# INSTALLATION
 
 There are two methods for getting the tethys docker container images:
 
@@ -16,13 +25,16 @@ sudo docker pull swainn/ckan_data:dev swainn/tethys_base:dev
 2. Build from Source Dockerfiles:
 
 # Create working directory. NOTE: This directory can be located wherever you would like, but be sure to use your custom path in the following steps if you don't use the suggested directory.
+
 mkdir ~/tethysdev
 
-# Retrive tethys_docker repository:
+# Retrive tethys_docker Repository:
+
 cd ~/tethysdev
 git clone https://swainn@bitbucket.org/swainn/tethys_docker.git
 
-# Build from Dockerfiles (ckan_base is a dependency of tethys_base):
+# Build Images from Dockerfiles (ckan_base is a dependency of tethys_base):
+
 cd ~/tethysdev/tethys_docker/development/ckan_data
 sudo docker build -t ckan_data:dev .
 
@@ -32,23 +44,22 @@ sudo docker build -t ckan_base:dev .
 cd ~/tethysdev/tethys_docker/development/tethys_base
 sudo docker build -t tethys_base:dev .
 
-NOTE: Sometimes the build will fail due connection problems with the Ubuntu apt repositories. It may be necessary to run the docker build command MANY times before it finally succeeds.
+NOTE: Sometimes the build will fail due connection problems during apt-get update. It may be necessary to run the docker build command MANY times before it finally succeeds.
 
-# USAGE:
+ALSO NOTE: By default, when you build the tethys_base docker, it will build from the swainn/ckan_base:dev image found in the public repository. If you wish to have it build from your custom version of the ckan_base image, change the FROM statement in the Dockerfile to your ckan_base build.
 
-1. Start up an instance of the ckan_data image (ports 5432 and 8080 are exposed for postgresql and jetty, respectively)
+# USAGE
 
-sudo docker run -d -p 5432:5432 -p 8080:8080 --name ckan_db swainn/ckan_data_worker
+1. Start up an instance of the ckan_data image. Ports 5432 and 8080 are exposed for postgresql and jetty, respectively.
+
+sudo docker run -d -p 5432:5432 -p 8080:8080 --name ckan_data_worker ckan_data:dev
 
 2. Start up an instance of the tethys_base image (port 5000 is exposed)
 
-sudo docker run -i -t -p 80:5000 --link ckan_db:data --volumes-from ckan_data_worker --name tethys_dev_worker swainn/tethys_base:dev
+sudo docker run -i -t -p 80:5000 --link ckan_data_worker:data --volumes-from ckan_data_worker --name tethys_dev_worker tethys_base:dev
 
 # Explanation
-All of the data (postgresql, filestore, and solr) is stored in the ckan_data container. This container is not likely to
-change to allow you to persist your data as you update the tethys_base development image. A superuser has been setup on 
-the postgresql database so that you can inspect/modify the database using a client such as pgadminIII. To do so, use the
-following credentials:
+A superuser has been setup on the postgresql database so that you can inspect/modify the database using a client such as pgadminIII. To do so, use the following credentials:
 
 Username: tethys
 Password: tethys
