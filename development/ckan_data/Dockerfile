@@ -49,6 +49,17 @@ ENV DSDATABASE datastore_default
 ENV DSUSER datastore_default
 ENV DSPASS pass
 
+# Tethys super db and user
+ENV TETHYSDATABASE tethys
+ENV TETHYSUSER tethys
+ENV TETHYSPASS pass
+
+# Tethys app database manager
+# NOTE: these must be changed in tethys_base as well
+ENV APPMANAGERDATABASE tethys_db_manager
+ENV APPMANAGERUSER tethys_db_manager
+ENV APPMANAGERPASS pass
+
 # Home directories
 ENV JAVA_HOME /usr/lib/jvm/java-6-openjdk-amd64/
 
@@ -56,15 +67,19 @@ ENV JAVA_HOME /usr/lib/jvm/java-6-openjdk-amd64/
 # User docker for maintenance
 # CKAN main db & datastore db
 RUN /etc/init.d/postgresql start && \
-    sudo -u postgres psql --command "CREATE USER tethys WITH SUPERUSER PASSWORD 'tethys';" && \
-    sudo -u postgres createdb tethys -E utf8 -T template0 -O tethys && \
+    sudo -u postgres psql --command "CREATE USER $TETHYSUSER WITH SUPERUSER PASSWORD '$TETHYSPASS';" && \
+    sudo -u postgres createdb $TETHYSUSER -E utf8 -T template0 -O $TETHYSDATABASE && \
     sudo -u postgres psql -c "CREATE EXTENSION postgis" -d tethys && \
 	sudo -u postgres psql -c "CREATE USER $PGUSER WITH CREATEROLE SUPERUSER PASSWORD '$PGPASS';" && \
     sudo -u postgres createdb $PGDATABASE -E utf8 -T template0 -O $PGUSER; \
     sudo -u postgres psql -c "CREATE EXTENSION postgis" -d $PGDATABASE && \
     sudo -u postgres psql -c "CREATE USER $DSUSER PASSWORD '$DSPASS';" && \
     sudo -u postgres createdb $DSDATABASE -E utf8 -T template0 -O $DSUSER && \
-    sudo -u postgres psql -c "CREATE EXTENSION postgis" -d $DSDATABASE
+    sudo -u postgres psql -c "CREATE EXTENSION postgis" -d $DSDATABASE && \
+    sudo -u postgres psql -c "CREATE USER $APPMANAGERUSER WITH CREATEDB PASSWORD '$APPMANAGERPASS';" &&\
+    sudo -u postgres createdb $APPMANAGERDATABASE -E utf-8 -T template0 -O $APPMANAGERUSER && \
+    sudo -u postgres psql -c "CREATE EXTENSION postgis" -d $APPMANAGERDATABASE
+    
 
 # Modify config files --------------------------------------------------------#   
 # Allow remote connections to the database

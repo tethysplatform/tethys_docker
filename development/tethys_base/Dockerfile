@@ -14,6 +14,11 @@ ENV TETHYS_DEV_HOME $CKAN_HOME/tethys_dev
 ENV APPS_PROJECTS_DEV $CKAN_HOME/apps_projects
 ENV CKANEXT $CKAN_HOME/default/src/ckan/ckanext
 ENV CKANAPP $CKANEXT/tethys_apps/ckanapp
+ENV TETHYS_INI /usr/lib/ckan/default/src/ckan/ckanext/tethys_apps/tethys_apps.ini
+
+ENV APP_MANAGER_DATABASE tethys_db_manager
+ENV APP_MANAGER_USER tethys_db_manager
+ENV APP_MANAGER_PASS pass
 
 # Make dev directory ---------------------------------------------------------#
 RUN mkdir -p $TETHYS_DEV_HOME
@@ -37,6 +42,9 @@ RUN ln -s $TETHYS_DEV_HOME/ckanext-tethys_apps/ckanext/tethys_apps $CKANEXT/teth
 
 # Update configuration file --------------------------------------------------#
 RUN sed "s/ckan.plugins =.*/ckan.plugins = stats text_preview recline_preview pdf_preview tethys_apps ciwater_theme/g" -i $CKAN_INI
+
+# Add instruction to startup.sh that will modify the tethys apps config
+RUN sed -i '1i sed "s/tethys.database_manager_url =.*/tethys.database_manager_url = postgresql:\\\/\\\/$APP_MANAGER_USER:$APP_MANAGER_PASS@$DATA_PORT_5432_TCP_ADDR:$DATA_PORT_5432_TCP_PORT\\\/$APP_MANAGER_DATABASE/g" -i $TETHYS_INI' /usr/lib/ckan/startup.sh
 
 # Add instruction in startup.sh to add_apps.py script ------------------------#
 RUN sed -i '1i python $APPS_PROJECTS_DEV/link_apps.py $CKANAPP' /usr/lib/ckan/startup.sh
