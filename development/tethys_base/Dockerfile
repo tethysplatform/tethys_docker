@@ -51,6 +51,13 @@ RUN sed -i '1i python $APPS_PROJECTS_DEV/link_apps.py $CKANAPP' /usr/lib/ckan/st
 
 # Add the link_apps python script
 ADD link_apps.py $APPS_PROJECTS_DEV/
+ADD createapp /usr/lib/ckan/
+
+# Handle permissions
+RUN chmod 755 /usr/lib/ckan/createapp
+
+# Change the working directory
+WORKDIR /usr/lib/ckan/
 
 
 

@@ -1,0 +1,27 @@
+#!/bin/bash
+
+# Check for argument number
+if [ $# != 1 ]
+then
+	echo "Usage: ./createapp [name]"
+	exit 2
+fi
+
+# Check for appropriate name
+if [[ "$1" != ckanapp-* ]]
+then
+	echo "Error: Name must begin with 'ckanapp-' prefix (e.g.: ckanapp-my_first_app)."
+	exit 2
+fi
+
+# Change to the development directory
+cd $APPS_PROJECTS_DEV
+
+# Activate virtual environment
+. /usr/lib/ckan/default/bin/activate
+
+# Run create script
+paster create -t ckanapp $1
+
+# Change owner
+chown -R tethys $1
