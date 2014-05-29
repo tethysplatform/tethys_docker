@@ -11,71 +11,90 @@
 
 # EXPLANATION
 
-There are three docker container images that are needed to startup a new instance of the tethys apps development environment: ckan_data, ckan_base, and tethys_base. The ckan_base image provides a fresh source installation of CKAN without the data components (postgresql, filestore, datastore, solr)  and it is a dependency of the tethys_base image. The tethys_base image adds the tethys_apps and ciwater_theme plugins to the ckan_base installation.
+There are two Docker containers that are needed to deploy the Tethys development environment: tethys_dev and tethys_dev_data. The tethys_dev container runs CKAN with all the plugins for Tethys Apps installed to provide a development environment for Tethys app development. The tethys_dev_data container houses all of the data dependencies for the Tethys Software Framework (postgresql, filestore, datastore, solr, and tethys apps databases). This allows user data, app data, and datasets to be persisted despite the tethys_dev container being updated frequently.
 
-To run either the ckan_base or tethys_base images, they must be linked to an instance of the ckan_data image. This images houses all of the data components of CKAN and allow you to retain your data (users, datasets, resources, etc.) when you use updated versions of the ckan_base or tethys_base dockers.
+There are two methods for getting the tethys docker container images: Pull images or build from source. You may want to build from source if you want the very latest version of the Tethys Apps plugin.
 
-# INSTALLATION
+# INSTALL FROM IMAGES
 
-There are two methods for getting the tethys docker container images:
+1. Install Docker, if not installed already (see https://www.docker.io/gettingstarted/#h_installation)
 
-1. Pull from Docker Public Repository
-sudo docker pull swainn/ckan_data:dev swainn/tethys_base:dev
+2. Pull images from Docker Public Repository:
 
-2. Build from Source Dockerfiles:
+sudo docker pull swainn/tethys_dev swainn/tethys_dev_data
 
-# Create working directory. NOTE: This directory can be located wherever you would like, but be sure to use your custom path in the following steps if you don't use the suggested directory.
+
+# BUILD FROM SOURCE
+
+1. Create working directory:
 
 mkdir ~/tethysdev
 
-# Retrive tethys_docker Repository:
+NOTE: This directory can be located wherever you would like, but be sure to use your custom path in the following steps if you don't use the suggested directory.
+
+2. Retrive the tethys_docker source repository:
 
 cd ~/tethysdev
 git clone https://swainn@bitbucket.org/swainn/tethys_docker.git
 
-# Build Images from Dockerfiles (ckan_base is a dependency of tethys_base):
+3. Build container images from docker files:
 
-cd ~/tethysdev/tethys_docker/development/ckan_data
-sudo docker build -t ckan_data:dev .
+cd ~/tethysdev/tethys_docker/development/tethys_dev_data
+sudo docker build -t swainn/tethys_dev_data .
 
-cd ~/tethysdev/tethys_docker/development/ckan_base
-sudo docker build -t ckan_base:dev .
+cd ~/tethysdev/tethys_docker/development/tethys_dev
+sudo docker build -t swainn/tethys_dev .
 
-cd ~/tethysdev/tethys_docker/development/tethys_base
-sudo docker build -t tethys_base:dev .
+HINT: Often the build will fail due connection problems during apt-get update. It may be necessary to run the docker build command MANY times before it finally succeeds.
 
-NOTE: Sometimes the build will fail due connection problems during apt-get update. It may be necessary to run the docker build command MANY times before it finally succeeds.
+4. Copy the tethys_dev client
 
-ALSO NOTE: By default, when you build the tethys_base docker, it will build from the swainn/ckan_base:dev image found in the public repository. If you wish to have it build from your custom version of the ckan_base image, change the FROM statement in the Dockerfile to your ckan_base build.
+cp ~/tethysdev/tethys_docker/development/tethys_dev_client/tethysdev /usr/bin/
 
-# USAGE
+# CREATE CONTAINERS
 
-1. Start up an instance of the ckan_data image. Ports 5432 and 8080 are exposed for postgresql and jetty, respectively.
+After you have the docker images (either built from source of pulled from the public repository), you will need to use the Docker "run" command to create the containers:
 
-sudo docker run -d -p 5432:5432 -p 8080:8080 --name ckan_data_worker ckan_data:dev
+sudo docker run -d -p 5555:5432 -p 8080:8080 --name tethys_db swainn/tethys_dev_data
+sudo docker run -i -t -p 5000:5000 --link tethys_db:data --volumes-from tethys_db -v <apps_working_directory>:/usr/lib/ckan/apps_projects:rw --name tethys_dev swainn/tethys_dev
 
-2. Start up an instance of the tethys_base image (port 5000 is exposed)
+Replace <apps_working_directory> with the directory where you will create your app projects. The docker container instances are assigned names: tethys_db for the tethys_data_dev container and tethys_dev for the tethys_dev container. Stop the tethys_dev container using the key combination ctrl-C. The tethys_dev_data container can be stopped using the following command:
 
-sudo docker run -i -t -p 80:5000 --link ckan_data_worker:data --volumes-from ckan_data_worker --name tethys_dev_worker tethys_base:dev
+sudo docker stop tethys_db
 
-# Explanation
-A superuser has been setup on the postgresql database so that you can inspect/modify the database using a client such as pgadminIII. To do so, use the following credentials:
+# START AND STOP
 
+After the containers have been created the first time, they can be started using the following commands:
+
+sudo docker start tethys_db
+sudo docker start -a -i tethys_dev
+
+NOTE: The containers must be started in this order. The tethys_dev container depends on the tethys_db container running.
+
+The "a" and "i" options allow you to see the output from the server that is running CKAN and Tethys apps. This is useful for debugging. To stop the tethys_dev container, use the key combination ctrl-C as before. To stop the tethys_db container use:
+
+sudo docker stop tethys_db
+
+# DATA INTROSPECTION
+
+You can inspect the CKAN and TETHYS database using a PostgreSQL client such as PGAdminIII. To do so, start the tethys_db container and use the following credentials to connect:
+
+Host: localhost
+Port: 5555
 Username: tethys
-Password: tethys
+Password: pass
+Database: tethys
 
-# To Inspect Data, bind to the data volumes:
-sudo docker run --rm -i -t --volumes-from ckan_data ubuntu bash
+The tethys user is a superuser for the database. The various data directories and log directories can be inspected by creating a new docker container that binds to the volumes of tethys_db:
 
-Useful volumes include:
-/etc/postgresql
-/var/log/postgresql
-/var/lib/postgresql
-/var/lib/ckan/default
-/etc/solr/conf
-/var/log/supervisor
+sudo docker run --rm -i -t --volumes-from tethys_db ubuntu bash
 
-The last one (/var/log/supervisor) contains logs for Jetty and PostgreSQL that can be used for debugging.
+Useful directories include:
+/var/lib/ckan/default	(FileStore data directory)
+/etc/solr/conf		(Solr configuration)
+/var/log/supervisor	(Solr/Jetty and PostgreSQL logs)
+
+# TETHYS DEV CLIENT
 
 
 
