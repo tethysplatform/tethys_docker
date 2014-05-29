@@ -61,4 +61,4 @@ then
 	sudo docker run --rm -i -t -v $APPS_DIRECTORY:/usr/lib/ckan/apps_projects:rw swainn/tethys_dev ./createapp $APP_NAME
 fi
 
-/bin/bash
+exec $SHELL
