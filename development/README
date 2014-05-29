@@ -100,7 +100,9 @@ Useful directories include:
 
 There is a commandline client available for working with the Tethys development environment. To install the client execute the following:
 
-$
+$ wget "https://bitbucket.org/swainn/tethys_docker/raw/302224dc8d3f4e963bd91ab0f85becbf7beee9ed/development/tethys_dev_client/tethysdev"
+$ chmod +x tethysdev
+$ sudo mv tethysdev /usr/bin
 
 
 
