@@ -21,53 +21,47 @@ There are two methods for getting the tethys docker container images: Pull image
 
 2. Pull images from Docker Public Repository:
 
-sudo docker pull swainn/tethys_dev swainn/tethys_dev_data
-
+	$ sudo docker pull swainn/tethys_dev swainn/tethys_dev_data
 
 # BUILD FROM SOURCE
 
 1. Create working directory:
 
-mkdir ~/tethysdev
+	$ mkdir ~/tethysdev
 
 NOTE: This directory can be located wherever you would like, but be sure to use your custom path in the following steps if you don't use the suggested directory.
 
 2. Retrive the tethys_docker source repository:
 
-cd ~/tethysdev
-git clone https://swainn@bitbucket.org/swainn/tethys_docker.git
+	$ cd ~/tethysdev
+	$ git clone https://swainn@bitbucket.org/swainn/tethys_docker.git
 
 3. Build container images from docker files:
 
-cd ~/tethysdev/tethys_docker/development/tethys_dev_data
-sudo docker build -t swainn/tethys_dev_data .
-
-cd ~/tethysdev/tethys_docker/development/tethys_dev
-sudo docker build -t swainn/tethys_dev .
+	$ cd ~/tethysdev/tethys_docker/development/tethys_dev_data
+	$ sudo docker build -t swainn/tethys_dev_data .
+	$ cd ~/tethysdev/tethys_docker/development/tethys_dev
+	$ sudo docker build -t swainn/tethys_dev .
 
 HINT: Often the build will fail due connection problems during apt-get update. It may be necessary to run the docker build command MANY times before it finally succeeds.
-
-4. Copy the tethys_dev client
-
-cp ~/tethysdev/tethys_docker/development/tethys_dev_client/tethysdev /usr/bin/
 
 # CREATE CONTAINERS
 
 After you have the docker images (either built from source of pulled from the public repository), you will need to use the Docker "run" command to create the containers:
 
-sudo docker run -d -p 5555:5432 -p 8080:8080 --name tethys_db swainn/tethys_dev_data
-sudo docker run -i -t -p 5000:5000 --link tethys_db:data --volumes-from tethys_db -v <apps_working_directory>:/usr/lib/ckan/apps_projects:rw --name tethys_dev swainn/tethys_dev
+	$ sudo docker run -d -p 5555:5432 -p 8080:8080 --name tethys_db swainn/tethys_dev_data
+	$ sudo docker run -i -t -p 5000:5000 --link tethys_db:data --volumes-from tethys_db -v <apps_working_directory>:/usr/lib/ckan/apps_projects:rw --name tethys_dev swainn/tethys_dev
 
 Replace <apps_working_directory> with the directory where you will create your app projects. The docker container instances are assigned names: tethys_db for the tethys_data_dev container and tethys_dev for the tethys_dev container. Stop the tethys_dev container using the key combination ctrl-C. The tethys_dev_data container can be stopped using the following command:
 
-sudo docker stop tethys_db
+	$ sudo docker stop tethys_db
 
 # START AND STOP
 
 After the containers have been created the first time, they can be started using the following commands:
 
-sudo docker start tethys_db
-sudo docker start -a -i tethys_dev
+	$ sudo docker start tethys_db
+	$ sudo docker start -a -i tethys_dev
 
 NOTE: The containers must be started in this order. The tethys_dev container depends on the tethys_db container running.
 
@@ -79,7 +73,7 @@ sudo docker stop tethys_db tethys_dev
 
 New app projects can be created using the Tethys app scaffold by issuing the following command:
 
-sudo docker run --rm -i -t -v <apps_working_directory>:/usr/lib/ckan/apps_projects:rw swainn/tethys_dev ./createapp <app_name>
+	$ sudo docker run --rm -i -t -v <apps_working_directory>:/usr/lib/ckan/apps_projects:rw swainn/tethys_dev ./createapp <app_name>
 
 Replace <apps_working_directory> with the path to the directory where you will work on your apps projects (same as in the CREATE CONTAINERS section). Also, replace <app_name> with the name of the app that you would like to create. The app name must have "ckanapp-" as a prefix.
 
@@ -95,7 +89,7 @@ Database: tethys
 
 The tethys user is a superuser for the database. The various data directories and log directories can be inspected by creating a new docker container that binds to the volumes of tethys_db:
 
-sudo docker run --rm -i -t --volumes-from tethys_db ubuntu bash
+	$ sudo docker run --rm -i -t --volumes-from tethys_db ubuntu bash
 
 Useful directories include:
 /var/lib/ckan/default	(FileStore data directory)
@@ -103,6 +97,10 @@ Useful directories include:
 /var/log/supervisor	(Solr/Jetty and PostgreSQL logs)
 
 # TETHYS DEV CLIENT
+
+There is a commandline client available for working with the Tethys development environment. To install the client execute the following:
+
+$
 
 
 

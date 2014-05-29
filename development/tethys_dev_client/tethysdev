@@ -3,7 +3,10 @@
 # Check for argument number
 if [ $# -lt 1 ]
 then
-	echo 'Usage: . tethysdev [command] [options...]'
+	echo 'Usage: . tethysdev [start|stop|create] [options...]'
+	echo '       Use "start" command to start tethys dev containers'
+	echo '       Use "stop" command to stop the tethys dev containers'
+	echo '       Use "create" command to create new app projects from scaffold'
 	exit 2
 fi
 
