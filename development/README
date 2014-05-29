@@ -71,9 +71,17 @@ sudo docker start -a -i tethys_dev
 
 NOTE: The containers must be started in this order. The tethys_dev container depends on the tethys_db container running.
 
-The "a" and "i" options allow you to see the output from the server that is running CKAN and Tethys apps. This is useful for debugging. To stop the tethys_dev container, use the key combination ctrl-C as before. To stop the tethys_db container use:
+The "a" and "i" options allow you to see the output from the server that is running CKAN and Tethys apps. This is useful for debugging. To stop the tethys_dev container, use the key combination ctrl-C as before. Both containers can be stopped using:
 
-sudo docker stop tethys_db
+sudo docker stop tethys_db tethys_dev
+
+# CREATE NEW APP PROJECTS
+
+New app projects can be created using the Tethys app scaffold by issuing the following command:
+
+sudo docker run --rm -i -t -v <apps_working_directory>:/usr/lib/ckan/apps_projects:rw swainn/tethys_dev ./createapp <app_name>
+
+Replace <apps_working_directory> with the path to the directory where you will work on your apps projects (same as in the CREATE CONTAINERS section). Also, replace <app_name> with the name of the app that you would like to create. The app name must have "ckanapp-" as a prefix.
 
 # DATA INTROSPECTION
 
