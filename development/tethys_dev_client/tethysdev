@@ -1,0 +1,60 @@
+#!/bin/bash
+
+# Check for argument number
+if [ $# -lt 1 ]
+then
+	echo 'Usage: . tethysdev [command] [options...]'
+	exit 2
+fi
+
+# Start containers command
+if [ $1 == "start" ]
+then
+
+	if [ $# != 2 ]
+	then
+		echo 'Usage: ./tethysdev start [container]'
+		echo '       container = either "db" or "tethys"'
+		echo '       e.g.: ./tethysdev start db'
+		exit 2
+	fi
+	
+	if [ $2 == 'db' ]
+	then
+		# Start the tethys db
+		sudo docker start ckan_db
+	elif [ $2 == 'tethys' ]
+	then
+		sudo docker start -a -i tethys_dev
+	fi
+	
+fi
+
+# Stop containers command
+if [ $1 == "stop" ]
+then
+	
+	sudo docker stop ckan_db
+	sudo docker stop tethys_dev
+fi
+
+# Create new app command
+if [ $1 == "create" ]
+then
+
+	if [ $# != 3 ]
+	then
+		echo 'Usage: ./tethysdev create [apps_directory] [app_name]'
+		echo '       apps_directory = path to directory with Tethys apps projects'
+		echo '       app_name = name of new app project to be created with "ckanapp-" prefix'
+		exit 2
+	fi
+	
+	APPS_DIRECTORY=$2
+	APP_NAME=$3
+	
+	echo $APPS_DIRECTORY
+	echo $APP_NAME
+	
+	sudo docker run --rm -i -t -v $APPS_DIRECTORY:/usr/lib/ckan/apps_projects:rw swainn/tethys_dev:1.0 ./createapp $APP_NAME
+fi

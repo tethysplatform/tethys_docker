@@ -4,7 +4,7 @@
 # PostgreSQL 9.3
 # PostGIS 2.1
 #
-# VERSION 1.0
+# VERSION 1.0.0
 
 FROM ubuntu:12.04
 

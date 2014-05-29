@@ -4,7 +4,7 @@
 # PostGIS 2.1
 # Jetty
 # CREDITS: Based on example here http://docs.docker.io/examples/postgresql_service/
-# VERSION 1.0
+# VERSION 1.0.0
 
 FROM ubuntu:12.04
 
