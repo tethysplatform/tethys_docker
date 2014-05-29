@@ -101,9 +101,28 @@ Useful directories include:
 There is a commandline client available for working with the Tethys development environment. To install the client execute the following:
 
 	$ cd /tmp
-	$ wget "https://bitbucket.org/swainn/tethys_docker/raw/302224dc8d3f4e963bd91ab0f85becbf7beee9ed/development/tethys_dev_client/tethysdev"
-	$ chmod +x tethysdev
-	$ sudo mv tethysdev /usr/local/bin
+	$ wget "https://bitbucket.org/swainn/tethys_docker/raw/9496183929181e73f7b3fafdada3b60e8a4fcead/development/tethys_dev_client/tethysdc"
+	$ chmod +x tethysdc
+	$ sudo mv tethysdc /usr/local/bin
+
+There are three commands that you can use with the Tethys development client: start, stop, and create. Use the start command like so to start your Tethys development Docker containers:
+
+	$ tethysdc start db
+	$ tethysdc start tethys
+
+Use the client to stop your Tethys development containers:
+
+	$ tethysdc stop
+
+NOTE: To stop the tethys_dev with output printing to the console, press ctrl-C as before.
+
+Use the client to create new apps using the create command:
+
+	$ tethysdc create <apps_working_directory> <app_name>
+
+Replace <apps_working_directory> with the path to the directory with your Tethys app projects and replace <app_name> with the name of the app to be created. Follow the interactive prompts to set metadata about your app. The <app_name> must start with the "ckanapp-" prefix (e.g.: ckanapp-my_first_app).
+
+
 
 
 
