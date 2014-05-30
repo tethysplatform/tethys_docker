@@ -25,7 +25,7 @@ then
 	if [ $2 == 'db' ]
 	then
 		# Start the tethys db
-		sudo docker start tethys_db
+		sudo docker start tethys_dev_data
 	elif [ $2 == 'tethys' ]
 	then
 		sudo docker start -a -i tethys_dev
@@ -37,7 +37,7 @@ fi
 if [ $1 == "stop" ]
 then
 	
-	sudo docker stop tethys_db tethys_dev
+	sudo docker stop tethys_dev_data tethys_dev
 fi
 
 # Create new app command
@@ -58,7 +58,7 @@ then
 	echo $APPS_DIRECTORY
 	echo $APP_NAME
 	
-	sudo docker run --rm -i -t -v $APPS_DIRECTORY:/usr/lib/ckan/apps_projects:rw swainn/tethys_dev ./createapp $APP_NAME
+	sudo docker run --rm -i -t -v $APPS_DIRECTORY:/usr/lib/ckan/apps_projects:rw ciwater/tethys_dev ./createapp $APP_NAME
 fi
 
 exec $SHELL
