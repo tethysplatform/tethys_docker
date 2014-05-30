@@ -1,4 +1,4 @@
-import os, sys, subprocess
+import os, sys
 
 print "LINKING APPS"
 
@@ -38,7 +38,7 @@ for app_project_thing in os.listdir(APPS_PROJECTS):
         except:
             pass
 
-for project, source_directory in project_links.iteritems():
+for project, source_directory in project_links.iteritems():    
     try:
         source_link = os.path.join(CKANAPP_HOME, project)
         os.symlink(source_directory, source_link)
