@@ -10,8 +10,8 @@ sed "s/tethys.database_manager_url =.*/tethys.database_manager_url = postgresql:
 # Activate the virtual environment -------------------------------------------#
 . $VENV_ACTIVATE
 
-# Link apps ------------------------------------------------------------------#
-python /usr/lib/ckan/scripts/link_apps.py $CKANAPP $APPS_PROJECTS_DEV
+# Install apps ---------------------------------------------------------------#
+python /usr/lib/ckan/scripts/install_apps.py $APPS_PROJECTS_DEV
 
 # Activate initialize the database -------------------------------------------#
 cd $VENV_HOME/src/ckan
