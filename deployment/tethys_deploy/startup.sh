@@ -1,3 +1,4 @@
+#!/bin/bash
 # Modify the CKAN config file to reflect linked ports ------------------------#
 sed "s/#solr_url.*/solr_url = http:\/\/$DATA_PORT_8080_TCP_ADDR:$DATA_PORT_8080_TCP_PORT\/solr/g" -i $CKAN_INI
 sed "s/sqlalchemy.url.*/sqlalchemy.url = postgresql:\/\/$PGUSER:$PGPASS@$DATA_PORT_5432_TCP_ADDR:$DATA_PORT_5432_TCP_PORT\/$PGDATABASE/g" -i $CKAN_INI
@@ -17,8 +18,16 @@ python /usr/lib/ckan/scripts/install_apps.py $APPS_PROJECTS_DEV
 cd $VENV_HOME/src/ckan
 paster db init -c $CKAN_INI
 
-# Start the production servers -----------------------------------------------#
-sudo a2ensite ckan_default
-sudo ln -s /etc/nginx/sites-available/ckan_default /etc/nginx/sites-enabled/ckan_default
-sudo service apache2 reload
-sudo service nginx reload
+sudo service apache2 start
+sudo service nginx start
+#service nginx reload
+
+#supervisorctl start apache2
+#supervisorctl start nginx
+
+#/usr/bin/supervisord
+
+#service apache2 start
+#service nginx start
+
+bash

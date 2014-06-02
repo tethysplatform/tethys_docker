@@ -1,6 +1,6 @@
 <VirtualHost 0.0.0.0:8080>
-    ServerName default.ckanhosted.com
-    ServerAlias www.default.ckanhosted.com
+    ServerName 127.0.0.1
+    ServerAlias 127.0.0.1
     WSGIScriptAlias / /etc/ckan/default/apache.wsgi
 
     # Pass authorization info on (needed for rest api)

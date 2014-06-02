@@ -29,6 +29,9 @@ RUN apt-get update
 RUN apt-get upgrade -y
 RUN apt-get install -y --force-yes libpq-dev
 
+# Install supervisor ---------------------------------------------------------#
+RUN apt-get install -y supervisor
+
 # Environment variables ------------------------------------------------------#
 ENV PGVERSION 9.3
 
@@ -124,12 +127,29 @@ ADD apache/apache.wsgi /etc/ckan/default/
 ADD apache/ckan_default /etc/apache2/sites-available/
 ADD nginx/ckan_default /etc/nginx/sites-available/
 
-# Create user
-RUN adduser tethys
+# Add the supervisor conf file to appropriate place --------------------------#
+ADD supervisord.conf /etc/supervisor/conf.d/
+
+# Configure apache2 and nginx ------------------------------------------------#
+RUN service nginx stop && \
+    service apache2 stop
+
+# Modify listening ports for apache
+RUN sed "s/NameVirtualHost \*:80/NameVirtualHost *:8080/g" -i /etc/apache2/ports.conf && \
+    sed "s/Listen 80/Listen 8080/g" -i /etc/apache2/ports.conf
+
+# Enable and disable appropriate sites
+RUN a2dissite default && \
+    a2ensite ckan_default && \
+    ln -s /etc/nginx/sites-available/ckan_default /etc/nginx/sites-enabled/ckan_default
+
+# Handle Apache Permissions
+RUN chmod 644 /etc/ckan/default/apache.wsgi
+RUN chown www-data /var/lib/ckan/default
+RUN chmod u+rwx /var/lib/ckan/default
 
 # Handle permissions
 RUN chmod -R 755 /usr/lib/ckan/scripts
-RUN chown -R tethys /usr/lib/ckan/scripts
 
 # Change the working directory
 WORKDIR /usr/lib/ckan/scripts

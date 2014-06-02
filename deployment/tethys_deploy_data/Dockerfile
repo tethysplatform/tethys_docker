@@ -101,7 +101,7 @@ RUN sed 's=\^\[\:space\:\]=\^\[\[\:space\:\]\]=g' -i /etc/init.d/jetty
 RUN mkdir -p /var/log/supervisor
 RUN locale-gen en_US en_US.UTF-8
 
-# Add the supervisor conf file to appropriate place -------------------------#
+# Add the supervisor conf file to appropriate place --------------------------#
 ADD supervisord.conf /etc/supervisor/conf.d/
 
 # Add the CKAN schema.xml file -----------------------------------------------#
