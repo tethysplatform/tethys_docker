@@ -3,6 +3,7 @@
 # Ubuntu 12.04 LTS
 # PostgreSQL 9.3
 # PostGIS 2.1
+# TethysApps Latest
 #
 # VERSION 1.0.0
 
@@ -16,6 +17,11 @@ RUN apt-get install -y wget sudo curl ssh vim
 
 # Install CKAN dependencies --------------------------------------------------#
 RUN apt-get install -y python-dev python-pip python-virtualenv git-core
+
+# Install Production Servers -------------------------------------------------#
+RUN apt-get install -y apache2 libapache2-mod-wsgi
+RUN apt-get install -y nginx
+RUN apt-get install -y postfix
 
 # Drivers for PostgreSQL -----------------------------------------------------#
 RUN echo "deb http://apt.postgresql.org/pub/repos/apt/ precise-pgdg main" > /etc/apt/sources.list.d/pgdg.list
@@ -51,7 +57,7 @@ ENV VENV_HOME /usr/lib/ckan/default
 ENV VENV_ACTIVATE /usr/lib/ckan/default/bin/activate
 
 # Configuration files
-ENV CKAN_INI /etc/ckan/default/development.ini
+ENV CKAN_INI /etc/ckan/default/production.ini
 ENV TETHYS_INI /usr/lib/ckan/default/src/ckan/ckanext/tethys_apps/tethys_apps.ini
 
 # Create virtual environment -------------------------------------------------#
@@ -94,8 +100,7 @@ RUN mkdir -p /etc/ckan/default && \
 
 # CKAN INI
 RUN sed "s/#ckan.storage_path.*/ckan.storage_path = \/var\/lib\/ckan\/default/g" -i $CKAN_INI && \
-    sed "s/ckan.plugins =.*/ckan.plugins = stats text_preview recline_preview pdf_preview tethys_apps ciwater_theme/g" -i $CKAN_INI && \
-    sed "s/debug =.*/debug = true/g" -i $CKAN_INI
+    sed "s/ckan.plugins =.*/ckan.plugins = stats text_preview recline_preview pdf_preview tethys_apps ciwater_theme/g" -i $CKAN_INI
 
 # Link who.ini
 RUN ln -sf $CKAN_HOME/default/src/ckan/who.ini /etc/ckan/default/who.ini
@@ -115,6 +120,7 @@ RUN mkdir /usr/lib/ckan/scripts
 ADD startup.sh /usr/lib/ckan/scripts/
 ADD link_apps.py /usr/lib/ckan/scripts/
 ADD createapp /usr/lib/ckan/scripts/
+ADD install_apps.py /usr/lib/ckan/scripts/
 
 # Create user
 RUN adduser tethys
