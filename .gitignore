@@ -4,6 +4,4 @@
 *.pydevproject
 *.project
 *.egg-info
-*.class
-*.pyc
-*.pyo
+*.idea
