@@ -10,6 +10,10 @@ sed "s/tethys.database_manager_url =.*/tethys.database_manager_url = postgresql:
 # Activate the virtual environment -------------------------------------------#
 . $VENV_ACTIVATE
 
+# Update the Tethys Apps plugin ----------------------------------------------#
+cd $TETHYS_DEV_HOME/ckanext-tethys_apps
+git pull
+
 # Install apps ---------------------------------------------------------------#
 python /usr/lib/ckan/scripts/install_apps.py $APPS_PROJECTS_DEV
 
