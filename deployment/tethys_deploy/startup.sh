@@ -10,10 +10,6 @@ sed "s/tethys.database_manager_url =.*/tethys.database_manager_url = postgresql:
 # Activate the virtual environment -------------------------------------------#
 . $VENV_ACTIVATE
 
-# Update the Tethys Apps plugin ----------------------------------------------#
-cd $TETHYS_DEV_HOME/ckanext-tethys_apps
-git pull
-
 # Install apps ---------------------------------------------------------------#
 python /usr/lib/ckan/scripts/install_apps.py $APPS_PROJECTS_DEV
 
@@ -21,5 +17,8 @@ python /usr/lib/ckan/scripts/install_apps.py $APPS_PROJECTS_DEV
 cd $VENV_HOME/src/ckan
 paster db init -c $CKAN_INI
 
-# Start the development server (paster) --------------------------------------#
-paster serve --reload $CKAN_INI
+# Start the production servers -----------------------------------------------#
+sudo a2ensite ckan_default
+sudo ln -s /etc/nginx/sites-available/ckan_default /etc/nginx/sites-enabled/ckan_default
+sudo service apache2 reload
+sudo service nginx reload

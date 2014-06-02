@@ -82,14 +82,14 @@ RUN git clone https://swainn@bitbucket.org/swainn/ckanext-ciwater_theme.git $TET
 # Install plugins into virtual environment -----------------------------------#
 RUN . $VENV_ACTIVATE && \
 	cd $TETHYS_DEV_HOME/ckanext-tethys_apps && \
-    python setup.py develop && \
+    python setup.py install && \
     cd $TETHYS_DEV_HOME/ckanext-ciwater_theme && \
-    python setup.py develop && \
+    python setup.py install && \
     deactivate
  
 # Symbolically link the plugins ----------------------------------------------#
-RUN ln -s $TETHYS_DEV_HOME/ckanext-tethys_apps/ckanext/tethys_apps $CKANEXT/tethys_apps && \
-    ln -s $TETHYS_DEV_HOME/ckanext-ciwater_theme/ckanext/ciwater_theme $CKANEXT/ciwater_theme
+RUN cp -R $TETHYS_DEV_HOME/ckanext-tethys_apps/ckanext/tethys_apps $CKANEXT/ && \
+    cp -R $TETHYS_DEV_HOME/ckanext-ciwater_theme/ckanext/ciwater_theme $CKANEXT/
 
 # Create config and edit -----------------------------------------------------#
 RUN mkdir -p /etc/ckan/default && \
@@ -105,9 +105,6 @@ RUN sed "s/#ckan.storage_path.*/ckan.storage_path = \/var\/lib\/ckan\/default/g"
 # Link who.ini
 RUN ln -sf $CKAN_HOME/default/src/ckan/who.ini /etc/ckan/default/who.ini
 
-# Make main.debug.css available for debugging --------------------------------#
-RUN cp $CKAN_HOME/default/src/ckan/ckan/public/base/css/main.debug.min.css $CKAN_HOME/default/src/ckan/ckan/public/base/css/main.debug.css
-
 # Create datastore directory -------------------------------------------------#
 RUN mkdir -p /var/lib/ckan/default && \
     chown www-data /var/lib/ckan/default && \
@@ -116,11 +113,16 @@ RUN mkdir -p /var/lib/ckan/default && \
 # Create a directory for scripts ---------------------------------------------#
 RUN mkdir /usr/lib/ckan/scripts
 
-# Add startup script  
+# Add scripts
 ADD startup.sh /usr/lib/ckan/scripts/
 ADD link_apps.py /usr/lib/ckan/scripts/
 ADD createapp /usr/lib/ckan/scripts/
 ADD install_apps.py /usr/lib/ckan/scripts/
+
+# Add server scripts
+ADD apache/apache.wsgi /etc/ckan/default/
+ADD apache/ckan_default /etc/apache2/sites-available/
+ADD nginx/ckan_default /etc/nginx/sites-available/
 
 # Create user
 RUN adduser tethys
@@ -132,7 +134,7 @@ RUN chown -R tethys /usr/lib/ckan/scripts
 # Change the working directory
 WORKDIR /usr/lib/ckan/scripts
 
-EXPOSE 5000
+EXPOSE 80
 
 CMD ["bash", "/usr/lib/ckan/scripts/startup.sh"]
 

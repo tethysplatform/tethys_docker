@@ -29,5 +29,5 @@ for app_project_thing in os.listdir(APPS_PROJECTS):
 # Run setup script for all apps
 for project_dir in project_dirs:
     os.chdir(project_dir)
-    subprocess.call(['python', 'setup.py', 'develop'])
+    subprocess.call(['python', 'setup.py', 'install'])
     print project_dir
