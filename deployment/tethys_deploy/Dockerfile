@@ -103,15 +103,13 @@ RUN mkdir -p /etc/ckan/default && \
 
 # CKAN INI
 RUN sed "s/#ckan.storage_path.*/ckan.storage_path = \/var\/lib\/ckan\/default/g" -i $CKAN_INI && \
-    sed "s/ckan.plugins =.*/ckan.plugins = stats text_preview recline_preview pdf_preview tethys_apps ciwater_theme/g" -i $CKAN_INI
+    sed "s/ckan.plugins =.*/ckan.plugins = stats text_preview recline_preview pdf_preview datastore tethys_apps ciwater_theme/g" -i $CKAN_INI
 
 # Link who.ini
 RUN ln -sf $CKAN_HOME/default/src/ckan/who.ini /etc/ckan/default/who.ini
 
-# Create datastore directory -------------------------------------------------#
-RUN mkdir -p /var/lib/ckan/default && \
-    chown www-data /var/lib/ckan/default && \
-    chmod u+rwx /var/lib/ckan/default
+# Create filestore directory -------------------------------------------------#
+RUN mkdir -p /var/lib/ckan/default
 
 # Create a directory for scripts ---------------------------------------------#
 RUN mkdir /usr/lib/ckan/scripts
@@ -145,10 +143,11 @@ RUN a2dissite default && \
 
 # Handle Apache Permissions
 RUN chmod 644 /etc/ckan/default/apache.wsgi
-RUN chown www-data /var/lib/ckan/default
-RUN chmod u+rwx /var/lib/ckan/default
 
-# Handle permissions
+# Modify the nginx config
+#RUN echo "daemon off;" >> /etc/nginx/nginx.conf
+
+# Handle permissions ---------------------------------------------------------#
 RUN chmod -R 755 /usr/lib/ckan/scripts
 
 # Change the working directory

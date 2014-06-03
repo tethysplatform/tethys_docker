@@ -108,6 +108,17 @@ ADD supervisord.conf /etc/supervisor/conf.d/
 RUN mv /etc/solr/conf/schema.xml /etc/solr/conf/schema.xml_bak
 ADD schema.xml /etc/solr/conf/
 
+# Add the database permissions files for datastore extentions ----------------#
+ADD datastore/datastore_setup.py /tmp/
+ADD datastore/set_permissions.sql /tmp/
+
+# Set the permissions for the database ---------------------------------------#
+RUN /etc/init.d/postgresql start && \
+    cd /tmp/ && \
+    python datastore_setup.py ckan_default datastore_default ckan_default ckan_default datastore_default -p postgres && \
+    rm /tmp/datastore_setup.py && \
+    rm /tmp/set_permissions.sql
+
 # Expose the PostgreSQL port -------------------------------------------------#
 EXPOSE 5432
 EXPOSE 8080

@@ -18,16 +18,15 @@ python /usr/lib/ckan/scripts/install_apps.py $APPS_PROJECTS_DEV
 cd $VENV_HOME/src/ckan
 paster db init -c $CKAN_INI
 
-sudo service apache2 start
-sudo service nginx start
-#service nginx reload
+# Permissions
+chown www-data:www-data /var/lib/ckan/default
+chmod u+rwx /var/lib/ckan/default
+chown -R www-data:www-data /usr/lib/ckan
 
-#supervisorctl start apache2
-#supervisorctl start nginx
+# Start apache
+/etc/init.d/apache2 start
 
-#/usr/bin/supervisord
-
-#service apache2 start
-#service nginx start
+# Start nginx (with supervisor)
+/usr/bin/supervisord
 
 bash
