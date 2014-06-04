@@ -144,9 +144,6 @@ RUN a2dissite default && \
 # Handle Apache Permissions
 RUN chmod 644 /etc/ckan/default/apache.wsgi
 
-# Modify the nginx config
-#RUN echo "daemon off;" >> /etc/nginx/nginx.conf
-
 # Handle permissions ---------------------------------------------------------#
 RUN chmod -R 755 /usr/lib/ckan/scripts
 
