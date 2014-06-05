@@ -32,24 +32,6 @@ RUN apt-get install -y --force-yes libpq-dev
 # Install supervisor ---------------------------------------------------------#
 RUN apt-get install -y supervisor
 
-# Environment variables ------------------------------------------------------#
-ENV PGVERSION 9.3
-
-# CKAN db and user
-ENV PGDATABASE ckan_default
-ENV PGUSER ckan_default
-ENV PGPASS pass
-
-# Datastore db and user
-ENV DSDATABASE datastore_default
-ENV DSUSER datastore_default
-ENV DSPASS pass
-
-# Tethys App Manager
-ENV APP_MANAGER_DATABASE tethys_db_manager
-ENV APP_MANAGER_USER tethys_db_manager
-ENV APP_MANAGER_PASS pass
-
 # Home dirs
 ENV CKAN_HOME /usr/lib/ckan
 ENV TETHYS_DEV_HOME $CKAN_HOME/tethys_dev
@@ -123,6 +105,9 @@ ADD install_apps.py /usr/lib/ckan/scripts/
 ADD apache/apache.wsgi /etc/ckan/default/
 ADD apache/ckan_default /etc/apache2/sites-available/
 ADD nginx/ckan_default /etc/nginx/sites-available/
+
+# Add config
+ADD tethys_deploy.conf /tmp/
 
 # Add the supervisor conf file to appropriate place --------------------------#
 ADD supervisord.conf /etc/supervisor/conf.d/
