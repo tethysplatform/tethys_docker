@@ -83,8 +83,13 @@ RUN mkdir -p /etc/ckan/default && \
     paster make-config ckan $CKAN_INI && \
     deactivate
 
+# Add config file ------------------------------------------------------------#
+ADD tethys_deploy.conf /tmp/
+
 # CKAN INI
-RUN sed "s/#ckan.storage_path.*/ckan.storage_path = \/var\/lib\/ckan\/default/g" -i $CKAN_INI && \
+RUN SERVER_ADDRESS=$(grep -Po "(?<=^SERVER_ADDRESS ).*" /tmp/tethys_deploy.conf) && \
+    sed "s/ckan.site_url.*/ckan.site_url = http:\/\/SERVER_ADDRESS/g" -i $CKAN_INI && \
+    sed "s/#ckan.storage_path.*/ckan.storage_path = \/var\/lib\/ckan\/default/g" -i $CKAN_INI && \
     sed "s/ckan.plugins =.*/ckan.plugins = stats text_preview recline_preview pdf_preview datastore tethys_apps ciwater_theme/g" -i $CKAN_INI
 
 # Link who.ini
@@ -106,19 +111,21 @@ ADD apache/apache.wsgi /etc/ckan/default/
 ADD apache/ckan_default /etc/apache2/sites-available/
 ADD nginx/ckan_default /etc/nginx/sites-available/
 
-# Add config
-ADD tethys_deploy.conf /tmp/
-
 # Add the supervisor conf file to appropriate place --------------------------#
 ADD supervisord.conf /etc/supervisor/conf.d/
+
+# Modify listening ports for apache
+RUN sed "s/NameVirtualHost \*:80/#NameVirtualHost *:8080/g" -i /etc/apache2/ports.conf && \
+    sed "s/Listen 80/Listen 8080/g" -i /etc/apache2/ports.conf && \
+    echo "ServerName localhost" | sudo tee /etc/apache2/conf.d/fqdn && \
+    echo "*               soft    nofile          8192" >> /etc/security/limits.conf && \
+    echo "*               hard    nofile          8192" >> /etc/security/limits.conf && \
+    echo "root            soft    nofile          8192" >> /etc/security/limits.conf && \
+    echo "root            hard    nofile          8192" >> /etc/security/limits.conf
 
 # Configure apache2 and nginx ------------------------------------------------#
 RUN service nginx stop && \
     service apache2 stop
-
-# Modify listening ports for apache
-RUN sed "s/NameVirtualHost \*:80/NameVirtualHost *:8080/g" -i /etc/apache2/ports.conf && \
-    sed "s/Listen 80/Listen 8080/g" -i /etc/apache2/ports.conf
 
 # Enable and disable appropriate sites
 RUN a2dissite default && \
@@ -133,6 +140,9 @@ RUN chmod -R 755 /usr/lib/ckan/scripts
 
 # Change the working directory
 WORKDIR /usr/lib/ckan/scripts
+
+# Expose some log directories
+VOLUME ["/var/log", "/usr/lib/ckan"]
 
 EXPOSE 80
 
