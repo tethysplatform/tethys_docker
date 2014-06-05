@@ -116,7 +116,6 @@ RUN mkdir /usr/lib/ckan/scripts
 
 # Add scripts
 ADD startup.sh /usr/lib/ckan/scripts/
-ADD link_apps.py /usr/lib/ckan/scripts/
 ADD createapp /usr/lib/ckan/scripts/
 ADD install_apps.py /usr/lib/ckan/scripts/
 

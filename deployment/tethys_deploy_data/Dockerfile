@@ -34,54 +34,52 @@ RUN apt-get install -y openjdk-6-jdk solr-jetty
 # Install supervisor ---------------------------------------------------------#
 RUN apt-get install -y supervisor
 
+# Add some temporary scripts -------------------------------------------------#
+ADD tethys_deploy.conf /tmp/
+ADD datastore/datastore_setup.py /tmp/
+ADD datastore/set_permissions.sql /tmp/
+
 # Variables ------------------------------------------------------------------#
 ENV PGVERSION 9.3
 ENV PGHOST localhost
 ENV PGPORT 5432
 
-# CKAN db and user
-ENV PGDATABASE ckan_default
-ENV PGUSER ckan_default
-ENV PGPASS pass
-
-# Datastore db and user
-ENV DSDATABASE datastore_default
-ENV DSUSER datastore_default
-ENV DSPASS pass
-
-# Tethys super db and user
-ENV TETHYSDATABASE tethys
-ENV TETHYSUSER tethys
-ENV TETHYSPASS pass
-
-# Tethys app database manager
-# NOTE: these must be changed in tethys_base as well
-ENV APPMANAGERDATABASE tethys_db_manager
-ENV APPMANAGERUSER tethys_db_manager
-ENV APPMANAGERPASS pass
-
 # Home directories
 ENV JAVA_HOME /usr/lib/jvm/java-6-openjdk-amd64/
 
-# Create default users and dbs -----------------------------------------------#
-# User docker for maintenance
-# CKAN main db & datastore db
+# Create default db users and dbs with permissions set correctly -------------#
 RUN /etc/init.d/postgresql start && \
-    sudo -u postgres psql --command "CREATE USER $TETHYSUSER WITH SUPERUSER PASSWORD '$TETHYSPASS';" && \
-    sudo -u postgres createdb $TETHYSUSER -E utf8 -T template0 -O $TETHYSDATABASE && \
+    cd /tmp/ && \
+    CKAN_DATABASE=$(grep -Po "(?<=^CKAN_DATABASE ).*" tethys_deploy.conf) && \
+    CKAN_USER=$(grep -Po "(?<=^CKAN_USER ).*" tethys_deploy.conf) && \
+    CKAN_PASS=$(grep -Po "(?<=^CKAN_PASS ).*" tethys_deploy.conf) && \
+    DATASTORE_DATABASE=$(grep -Po "(?<=^DATASTORE_DATABASE ).*" tethys_deploy.conf) && \
+    DATASTORE_USER=$(grep -Po "(?<=^DATASTORE_USER ).*" tethys_deploy.conf) && \
+    DATASTORE_PASS=$(grep -Po "(?<=^DATASTORE_PASS ).*" tethys_deploy.conf) && \
+    APPS_MANAGER_DATABASE=$(grep -Po "(?<=^APPS_MANAGER_DATABASE ).*" tethys_deploy.conf) && \
+    APPS_MANAGER_USER=$(grep -Po "(?<=^APPS_MANAGER_USER ).*" tethys_deploy.conf) && \
+    APPS_MANAGER_PASS=$(grep -Po "(?<=^APPS_MANAGER_PASS ).*" tethys_deploy.conf) && \
+    TETHYS_SUPER_DATABASE=$(grep -Po "(?<=^TETHYS_SUPER_DATABASE ).*" tethys_deploy.conf) && \
+    TETHYS_SUPER_USER=$(grep -Po "(?<=^TETHYS_SUPER_USER ).*" tethys_deploy.conf) && \
+    TETHYS_SUPER_PASS=$(grep -Po "(?<=^TETHYS_SUPER_PASS ).*" tethys_deploy.conf) && \
+    sudo -u postgres psql --command "CREATE USER $TETHYS_SUPER_USER WITH SUPERUSER PASSWORD '$TETHYS_SUPER_PASS';" && \
+    sudo -u postgres createdb $TETHYS_SUPER_USER -E utf8 -T template0 -O $TETHYS_SUPER_DATABASE && \
     sudo -u postgres psql -c "CREATE EXTENSION postgis" -d tethys && \
-	sudo -u postgres psql -c "CREATE USER $PGUSER WITH CREATEROLE SUPERUSER PASSWORD '$PGPASS';" && \
-    sudo -u postgres createdb $PGDATABASE -E utf8 -T template0 -O $PGUSER; \
-    sudo -u postgres psql -c "CREATE EXTENSION postgis" -d $PGDATABASE && \
-    sudo -u postgres psql -c "CREATE USER $DSUSER PASSWORD '$DSPASS';" && \
-    sudo -u postgres createdb $DSDATABASE -E utf8 -T template0 -O $DSUSER && \
-    sudo -u postgres psql -c "CREATE EXTENSION postgis" -d $DSDATABASE && \
-    sudo -u postgres psql -c "CREATE USER $APPMANAGERUSER WITH CREATEDB PASSWORD '$APPMANAGERPASS';" &&\
-    sudo -u postgres createdb $APPMANAGERDATABASE -E utf-8 -T template0 -O $APPMANAGERUSER && \
-    sudo -u postgres psql -c "CREATE EXTENSION postgis" -d $APPMANAGERDATABASE
-    
+	sudo -u postgres psql -c "CREATE USER $CKAN_USER WITH CREATEROLE SUPERUSER PASSWORD '$CKAN_PASS';" && \
+    sudo -u postgres createdb $CKAN_DATABASE -E utf8 -T template0 -O $CKAN_USER; \
+    sudo -u postgres psql -c "CREATE EXTENSION postgis" -d $CKAN_DATABASE && \
+    sudo -u postgres psql -c "CREATE USER $DATASTORE_USER PASSWORD '$DATASTORE_PASS';" && \
+    sudo -u postgres createdb $DATASTORE_DATABASE -E utf8 -T template0 -O $DATASTORE_USER && \
+    sudo -u postgres psql -c "CREATE EXTENSION postgis" -d $DATASTORE_DATABASE && \
+    sudo -u postgres psql -c "CREATE USER $APPS_MANAGER_USER WITH CREATEDB PASSWORD '$APPS_MANAGER_PASS';" &&\
+    sudo -u postgres createdb $APPS_MANAGER_DATABASE -E utf-8 -T template0 -O $APPS_MANAGER_USER && \
+    sudo -u postgres psql -c "CREATE EXTENSION postgis" -d $APPS_MANAGER_DATABASE && \
+    python datastore_setup.py $CKAN_DATABASE $DATASTORE_DATABASE $CKAN_USER $CKAN_USER $DATASTORE_USER -p postgres && \
+    rm /tmp/datastore_setup.py && \
+    rm /tmp/set_permissions.sql && \
+    rm /tmp/tethys_deploy.conf
 
-# Modify config files --------------------------------------------------------#   
+# Modify config files --------------------------------------------------------#
 # Allow remote connections to the database
 RUN echo "host all  all    0.0.0.0/0  md5" >> /etc/postgresql/9.3/main/pg_hba.conf
 
@@ -92,7 +90,7 @@ RUN echo "listen_addresses='*'" >> /etc/postgresql/9.3/main/postgresql.conf
 RUN sed 's/NO_START=1/NO_START=0/g' -i /etc/default/jetty && \
     sed "s=#JAVA_HOME\==JAVA_HOME\=$JAVA_HOME=g" -i /etc/default/jetty && \
     sed "s/#JETTY_HOST.*/JETTY_HOST=0.0.0.0/g" -i /etc/default/jetty
-    
+
 # Modification to fix bug with jetty
 # see: https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=637961
 RUN sed 's=\^\[\:space\:\]=\^\[\[\:space\:\]\]=g' -i /etc/init.d/jetty
@@ -101,27 +99,15 @@ RUN sed 's=\^\[\:space\:\]=\^\[\[\:space\:\]\]=g' -i /etc/init.d/jetty
 RUN mkdir -p /var/log/supervisor
 RUN locale-gen en_US en_US.UTF-8
 
-# Add the supervisor conf file to appropriate place --------------------------#
+# Add the supervisor conf file to appropriate place
 ADD supervisord.conf /etc/supervisor/conf.d/
 
 # Add the CKAN schema.xml file -----------------------------------------------#
 RUN mv /etc/solr/conf/schema.xml /etc/solr/conf/schema.xml_bak
 ADD schema.xml /etc/solr/conf/
 
-# Add the database permissions files for datastore extentions ----------------#
-ADD datastore/datastore_setup.py /tmp/
-ADD datastore/set_permissions.sql /tmp/
-
-# Set the permissions for the database ---------------------------------------#
-RUN /etc/init.d/postgresql start && \
-    cd /tmp/ && \
-    python datastore_setup.py ckan_default datastore_default ckan_default ckan_default datastore_default -p postgres && \
-    rm /tmp/datastore_setup.py && \
-    rm /tmp/set_permissions.sql
-
 # Expose the PostgreSQL port -------------------------------------------------#
-EXPOSE 5432
-EXPOSE 8080
+EXPOSE 5432 8080
 
 # Add VOLUMEs to for inspection, datastorage, and backup ---------------------#
 VOLUME  ["/etc/postgresql", "/var/log/postgresql", "/var/lib/postgresql", "/var/lib/ckan/default", "/etc/solr/conf", "/var/log/supervisor"]
