@@ -102,14 +102,21 @@ RUN mkdir -p /var/lib/ckan/default
 RUN mkdir /usr/lib/ckan/scripts
 
 # Add scripts
-ADD startup.sh /usr/lib/ckan/scripts/
-ADD createapp /usr/lib/ckan/scripts/
-ADD install_apps.py /usr/lib/ckan/scripts/
+ADD scripts/startup.sh /usr/lib/ckan/scripts/
+ADD scripts/install_apps.sh /usr/lib/ckan/scripts/
+
+# Set permissions for scripts
+RUN chmod -R 755 /usr/lib/ckan/scripts
 
 # Add server scripts
 ADD apache/apache.wsgi /etc/ckan/default/
 ADD apache/ckan_default /etc/apache2/sites-available/
 ADD nginx/ckan_default /etc/nginx/sites-available/
+
+# Apply server name to apache config
+RUN SERVER_ADDRESS=$(grep -Po "(?<=^SERVER_ADDRESS ).*" /tmp/tethys_deploy.conf) && \
+    sed "s/    ServerName 127.0.0.1/    ServerName $SERVER_ADDRESS/g" -i /etc/apache2/sites-available/ckan_default && \
+    sed "s/    ServerAlias 127.0.0.1/    ServerAlias $SERVER_ADDRESS/g" -i /etc/apache2/sites-available/ckan_default
 
 # Add the supervisor conf file to appropriate place --------------------------#
 ADD supervisord.conf /etc/supervisor/conf.d/
@@ -135,14 +142,8 @@ RUN a2dissite default && \
 # Handle Apache Permissions
 RUN chmod 644 /etc/ckan/default/apache.wsgi
 
-# Handle permissions ---------------------------------------------------------#
-RUN chmod -R 755 /usr/lib/ckan/scripts
-
 # Change the working directory
 WORKDIR /usr/lib/ckan/scripts
-
-# Expose some log directories
-VOLUME ["/var/log", "/usr/lib/ckan"]
 
 EXPOSE 80
 
