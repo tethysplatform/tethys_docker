@@ -28,24 +28,22 @@ sed "s/tethys.database_manager_url =.*/tethys.database_manager_url = postgresql:
 . $VENV_ACTIVATE
 
 # Install apps ---------------------------------------------------------------#
-#python /usr/lib/ckan/scripts/install_apps.py $APPS_PROJECTS_DEV
 /usr/lib/ckan/scripts/install_apps.sh
 
+Activate initialize the database -------------------------------------------#
+echo "Initializing CKAN Database..."
+cd $VENV_HOME/src/ckan
+paster db init -c $CKAN_INI
 
-# Activate initialize the database -------------------------------------------#
-#echo "Initializing CKAN Database..."
-#cd $VENV_HOME/src/ckan
-#paster db init -c $CKAN_INI
-#
-## Permissions
-#chown www-data:www-data /var/lib/ckan/default
-#chmod u+rwx /var/lib/ckan/default
-#chown -R www-data:www-data /usr/lib/ckan/default/
-#
-## Start apache
-#/etc/init.d/apache2 start
-#
-## Start nginx (with supervisor)
-#/usr/bin/supervisord
+# Permissions
+chown www-data:www-data /var/lib/ckan/default
+chmod u+rwx /var/lib/ckan/default
+chown -R www-data:www-data /usr/lib/ckan/default/
+
+# Start apache
+/etc/init.d/apache2 start
+
+# Start nginx (with supervisor)
+/usr/bin/supervisord
 
 bash
