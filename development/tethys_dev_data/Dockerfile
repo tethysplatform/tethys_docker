@@ -40,25 +40,24 @@ ENV PGHOST localhost
 ENV PGPORT 5432
 
 # CKAN db and user
-ENV PGDATABASE ckan_default
-ENV PGUSER ckan_default
-ENV PGPASS pass
+ENV CKAN_DATABASE ckan_default
+ENV CKAN_USER ckan_default
+ENV CKAN_PASS pass
 
 # Datastore db and user
-ENV DSDATABASE datastore_default
-ENV DSUSER datastore_default
-ENV DSPASS pass
+ENV DATASTORE_DATABASE datastore_default
+ENV DATASTORE_USER datastore_default
+ENV DATASTORE_PASS pass
 
 # Tethys super db and user
-ENV TETHYSDATABASE tethys
-ENV TETHYSUSER tethys
-ENV TETHYSPASS pass
+ENV TETHYS_SUPER_DATABASE tethys_super
+ENV TETHYS_SUPER_USER tethys_super
+ENV TETHYS_SUPER_PASS pass
 
 # Tethys app database manager
-# NOTE: these must be changed in tethys_base as well
-ENV APPMANAGERDATABASE tethys_db_manager
-ENV APPMANAGERUSER tethys_db_manager
-ENV APPMANAGERPASS pass
+ENV APPS_MANAGER_DATABASE tethys_db_manager
+ENV APPS_MANAGER_USER tethys_db_manager
+ENV APPS_MANAGER_PASS pass
 
 # Home directories
 ENV JAVA_HOME /usr/lib/jvm/java-6-openjdk-amd64/
@@ -67,18 +66,18 @@ ENV JAVA_HOME /usr/lib/jvm/java-6-openjdk-amd64/
 # User docker for maintenance
 # CKAN main db & datastore db
 RUN /etc/init.d/postgresql start && \
-    sudo -u postgres psql --command "CREATE USER $TETHYSUSER WITH SUPERUSER PASSWORD '$TETHYSPASS';" && \
-    sudo -u postgres createdb $TETHYSUSER -E utf8 -T template0 -O $TETHYSDATABASE && \
-    sudo -u postgres psql -c "CREATE EXTENSION postgis" -d tethys && \
-	sudo -u postgres psql -c "CREATE USER $PGUSER WITH CREATEROLE SUPERUSER PASSWORD '$PGPASS';" && \
-    sudo -u postgres createdb $PGDATABASE -E utf8 -T template0 -O $PGUSER; \
-    sudo -u postgres psql -c "CREATE EXTENSION postgis" -d $PGDATABASE && \
-    sudo -u postgres psql -c "CREATE USER $DSUSER PASSWORD '$DSPASS';" && \
-    sudo -u postgres createdb $DSDATABASE -E utf8 -T template0 -O $DSUSER && \
-    sudo -u postgres psql -c "CREATE EXTENSION postgis" -d $DSDATABASE && \
-    sudo -u postgres psql -c "CREATE USER $APPMANAGERUSER WITH CREATEDB PASSWORD '$APPMANAGERPASS';" &&\
-    sudo -u postgres createdb $APPMANAGERDATABASE -E utf-8 -T template0 -O $APPMANAGERUSER && \
-    sudo -u postgres psql -c "CREATE EXTENSION postgis" -d $APPMANAGERDATABASE
+    sudo -u postgres psql --command "CREATE USER $TETHYS_SUPER_USER WITH SUPERUSER PASSWORD '$TETHYS_SUPER_PASS';" && \
+    sudo -u postgres createdb $TETHYS_SUPER_USER -E utf8 -T template0 -O $TETHYS_SUPER_DATABASE && \
+    sudo -u postgres psql -c "CREATE EXTENSION postgis" -d $TETHYS_SUPER_DATABASE && \
+	sudo -u postgres psql -c "CREATE USER $CKAN_USER WITH CREATEROLE SUPERUSER PASSWORD '$CKAN_PASS';" && \
+    sudo -u postgres createdb $CKAN_DATABASE -E utf8 -T template0 -O $CKAN_USER; \
+    sudo -u postgres psql -c "CREATE EXTENSION postgis" -d $CKAN_DATABASE && \
+    sudo -u postgres psql -c "CREATE USER $DATASTORE_USER PASSWORD '$DATASTORE_PASS';" && \
+    sudo -u postgres createdb $DATASTORE_DATABASE -E utf8 -T template0 -O $DATASTORE_USER && \
+    sudo -u postgres psql -c "CREATE EXTENSION postgis" -d $DATASTORE_DATABASE && \
+    sudo -u postgres psql -c "CREATE USER $APPS_MANAGER_USER WITH CREATEDB PASSWORD '$APPS_MANAGER_PASS';" &&\
+    sudo -u postgres createdb $APPS_MANAGER_DATABASE -E utf-8 -T template0 -O $APPS_MANAGER_USER && \
+    sudo -u postgres psql -c "CREATE EXTENSION postgis" -d $APPS_MANAGER_DATABASE
     
 
 # Modify config files --------------------------------------------------------#   

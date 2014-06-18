@@ -27,19 +27,24 @@ RUN apt-get install -y --force-yes libpq-dev
 ENV PGVERSION 9.3
 
 # CKAN db and user
-ENV PGDATABASE ckan_default
-ENV PGUSER ckan_default
-ENV PGPASS pass
+ENV CKAN_DATABASE ckan_default
+ENV CKAN_USER ckan_default
+ENV CKAN_PASS pass
 
 # Datastore db and user
-ENV DSDATABASE datastore_default
-ENV DSUSER datastore_default
-ENV DSPASS pass
+ENV DATASTORE_DATABASE datastore_default
+ENV DATASTORE_USER datastore_default
+ENV DATASTORE_PASS pass
 
-# Tethys App Manager
-ENV APP_MANAGER_DATABASE tethys_db_manager
-ENV APP_MANAGER_USER tethys_db_manager
-ENV APP_MANAGER_PASS pass
+# Tethys super db and user
+ENV TETHYS_SUPER_DATABASE tethys_super
+ENV TETHYS_SUPER_USER tethys_super
+ENV TETHYS_SUPER_PASS pass
+
+# Tethys app database manager
+ENV APPS_MANAGER_DATABASE tethys_db_manager
+ENV APPS_MANAGER_USER tethys_db_manager
+ENV APPS_MANAGER_PASS pass
 
 # Home dirs
 ENV CKAN_HOME /usr/lib/ckan
@@ -112,10 +117,9 @@ RUN mkdir -p /var/lib/ckan/default && \
 RUN mkdir /usr/lib/ckan/scripts
 
 # Add startup script  
-ADD startup.sh /usr/lib/ckan/scripts/
-ADD link_apps.py /usr/lib/ckan/scripts/
-ADD createapp /usr/lib/ckan/scripts/
-ADD install_apps.py /usr/lib/ckan/scripts/
+ADD scripts/startup.sh /usr/lib/ckan/scripts/
+ADD scripts/createapp /usr/lib/ckan/scripts/
+ADD scripts/develop_apps.sh /usr/lib/ckan/scripts/
 
 # Create user
 RUN adduser tethys
