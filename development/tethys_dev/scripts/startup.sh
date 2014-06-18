@@ -6,7 +6,7 @@ sed "s/#ckan.datastore.read_url.*/ckan.datastore.read_url = postgresql:\/\/$DATA
 
 # Modify the Tethys Apps config file to reflect linked ports -----------------#
 sed "s/tethys.database_manager_url =.*/tethys.database_manager_url = postgresql:\/\/$APPS_MANAGER_USER:$APPS_MANAGER_PASS@$DATA_PORT_5432_TCP_ADDR:$DATA_PORT_5432_TCP_PORT\/$APPS_MANAGER_DATABASE/g" -i $TETHYS_INI
-sed "s/tethys.superuser_url =.*/tethys.superuser_url = postgresql:\/\/TETHYS_SUPER_USER:$TETHYS_SUPER_PASS@$DATA_PORT_5432_TCP_ADDR:$DATA_PORT_5432_TCP_PORT\/$TETHYS_SUPER_DATABASE/g" -i $TETHYS_INI
+sed "s/tethys.superuser_url =.*/tethys.superuser_url = postgresql:\/\/$TETHYS_SUPER_USER:$TETHYS_SUPER_PASS@$DATA_PORT_5432_TCP_ADDR:$DATA_PORT_5432_TCP_PORT\/$TETHYS_SUPER_DATABASE/g" -i $TETHYS_INI
 
 # Activate the virtual environment -------------------------------------------#
 . $VENV_ACTIVATE
