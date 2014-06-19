@@ -15,6 +15,10 @@ for directory in $APPS_PROJECTS_DEV/*/ ; do
         # Run the installation script
         cd "$directory"
         python setup.py install
+
+        # Toggle virtualenv activation
+        deactivate
+        . $VENV_ACTIVATE
     fi
 
 done

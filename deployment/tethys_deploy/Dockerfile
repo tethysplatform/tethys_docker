@@ -88,9 +88,11 @@ ADD tethys_deploy.conf /tmp/
 
 # CKAN INI
 RUN SERVER_ADDRESS=$(grep -Po "(?<=^SERVER_ADDRESS ).*" /tmp/tethys_deploy.conf) && \
+    EXTRA_RESOURCE_FIELDS="ckan.extra_resource_fields = model" && \
+    PLUGINS="ckan.plugins = stats text_preview recline_preview pdf_preview tethys_apps ciwater_theme" && \
     sed "s/ckan.site_url.*/ckan.site_url = http:\/\/SERVER_ADDRESS/g" -i $CKAN_INI && \
     sed "s/#ckan.storage_path.*/ckan.storage_path = \/var\/lib\/ckan\/default/g" -i $CKAN_INI && \
-    sed "s/ckan.plugins =.*/ckan.plugins = stats text_preview recline_preview pdf_preview datastore tethys_apps ciwater_theme/g" -i $CKAN_INI
+    sed "s/ckan.plugins =.*/$PLUGINS\n$EXTRA_RESOURCE_FIELDS/g" -i $CKAN_INI
 
 # Link who.ini
 RUN ln -sf $CKAN_HOME/default/src/ckan/who.ini /etc/ckan/default/who.ini
