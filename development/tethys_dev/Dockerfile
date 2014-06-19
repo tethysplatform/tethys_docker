@@ -22,6 +22,7 @@ RUN echo "deb http://apt.postgresql.org/pub/repos/apt/ precise-pgdg main" > /etc
 RUN apt-get update
 RUN apt-get upgrade -y
 RUN apt-get install -y --force-yes libpq-dev
+RUN apt-get install -y --force-yes postgresql-9.3-postgis-2.1
 
 # Environment variables ------------------------------------------------------#
 ENV PGVERSION 9.3
