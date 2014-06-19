@@ -98,8 +98,10 @@ RUN mkdir -p /etc/ckan/default && \
     deactivate
 
 # CKAN INI
-RUN sed "s/#ckan.storage_path.*/ckan.storage_path = \/var\/lib\/ckan\/default/g" -i $CKAN_INI && \
-    sed "s/ckan.plugins =.*/ckan.plugins = stats text_preview recline_preview pdf_preview tethys_apps ciwater_theme/g" -i $CKAN_INI && \
+RUN EXTRA_RESOURCE_FIELDS="ckan.extra_resource_fields = model" && \
+    PLUGINS="ckan.plugins = stats text_preview recline_preview pdf_preview tethys_apps ciwater_theme" && \
+    sed "s/#ckan.storage_path.*/ckan.storage_path = \/var\/lib\/ckan\/default/g" -i $CKAN_INI && \
+    sed "s/ckan.plugins =.*/$PLUGINS\n$EXTRA_RESOURCE_FIELDS/g" -i $CKAN_INI && \
     sed "s/debug =.*/debug = true/g" -i $CKAN_INI
 
 # Link who.ini
