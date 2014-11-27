@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 52 North Context -->
+<Context path="/wps"
+        docBase="/usr/share/tomcat7-wps/wps"
+        antiResourceLocking="false" privileged="true" />
