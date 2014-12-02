@@ -144,16 +144,24 @@ RUN make -j4 && make install && ldconfig
 # WPS Grass Bridge
 WORKDIR /tmp
 RUN wget "http://52north.org/files/geoprocessing/GRASS/wps-grass-bridge-patched.zip"
-RUN mkdir /usr/local/wps-grass-bridge && \
-    cp /tmp/wps-grass-bridge-patched.zip /usr/local/wps-grass-bridge
-WORKDIR /usr/local/wps-grass-bridge
+RUN mkdir /usr/local/wps_grass_bridge && \
+    cp /tmp/wps-grass-bridge-patched.zip /usr/local/wps_grass_bridge
+WORKDIR /usr/local/wps_grass_bridge
 RUN unzip wps-grass-bridge-patched.zip && \
     rm wps-grass-bridge-patched.zip && \
-    mkdir /var/grass_tmp
+    mkdir -p /var/grass/tmp
 
 # Configure 52 North Processes
 RUN rm /usr/share/tomcat7-wps/wps/config/wps_config.xml
 ADD wps/wps_config.xml /usr/share/tomcat7-wps/wps/config/
+
+# Set Permissions
+RUN chown tomcat7:tomcat7 /usr/local/grass-7.0.0svn/demolocation && \
+    chown tomcat7:tomcat7 /usr/local/grass-7.0.0svn/demolocation/PERMANENT && \
+    chown tomcat7:tomcat7 /usr/local/wps_grass_bridge && \
+    chown tomcat7:tomcat7 /usr/local/wps_grass_bridge/gms && \
+    chown tomcat7:tomcat7 /var/grass/tmp && \
+    chmod 777 -R /var/grass/tmp
 
 WORKDIR /tmp
 

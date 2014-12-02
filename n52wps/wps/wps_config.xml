@@ -153,6 +153,7 @@
           <Property name="Python_Home" active="true">/usr/bin</Property>
           <Property name="Python_Path" active="true">/usr/lib/python2.7</Property>
           <Property name="TMP_Dir" active="true">/tmp/grass_tmp</Property>
+          <Property name="Algorithm" active="true">v.buffer</Property>
         </Repository>
   </AlgorithmRepositoryList>
 	<RemoteRepositoryList />
