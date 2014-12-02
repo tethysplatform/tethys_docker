@@ -13,7 +13,7 @@ MAINTAINER Nathan Swain nathan.swain@byu.net
 
 # Apt setup -----------------------------------------------------------------------------------------------------------#
 RUN apt-get update -y && apt-get upgrade -y
-RUN apt-get install -y wget sudo curl ssh vim unzip
+RUN apt-get install -y wget sudo curl ssh vim unzip supervisor
 
 # Install Tomcat Dependencies -----------------------------------------------------------------------------------------#
 RUN apt-get install -y openjdk-7-jre
@@ -59,16 +59,14 @@ RUN rm /tmp/wps.war
 # Setup the Tomcat context
 ADD tomcat/wps.xml /etc/tomcat7/Catalina/localhost/
 
-# Build and Install GRASS from Source ---------------------------------------------------------------------------------#
-# RUN mkdir /usr/local/src # File exists
-RUN sudo chmod ug+rwx /usr/local/src
-# Get Source
+# Build and Install GRASS and Dependencies from Source ----------------------------------------------------------------#
 WORKDIR /usr/local/src
 RUN svn co https://svn.osgeo.org/grass/grass/branches/releasebranch_7_0 grass70_release
 RUN svn co http://svn.osgeo.org/metacrs/proj/branches/4.8/proj/
 
 
 # Install PROJ4, GEOS, and GDAL
+ENV PROCESSORS 3
 
 # PROJ4
 WORKDIR /tmp
@@ -77,7 +75,7 @@ RUN wget http://download.osgeo.org/proj/proj-datumgrid-1.5.zip && \
 WORKDIR /usr/local/src/proj/nad
 RUN unzip -o proj-datumgrid-1.5.zip
 WORKDIR /usr/local/src/proj
-RUN ./configure && make -j4 && make install
+RUN ./configure && make -j$PROCESSORS && make install
 RUN ldconfig
 
 # GEOS
@@ -88,8 +86,7 @@ WORKDIR /usr/local/src
 RUN bunzip2 geos-3.4.2.tar.bz2
 RUN tar xvf geos-3.4.2.tar
 WORKDIR /usr/local/src/geos-3.4.2
-RUN ./configure && make -j4 && make install
-RUN ldconfig
+RUN ./configure && make -j$PROCESSORS && make install && ldconfig
 
 # GDAL
 WORKDIR /usr/local/src
@@ -113,10 +110,12 @@ RUN CFLAGS="-g -Wall" LDFLAGS="-s" ./configure \
         --without-ogdi \
         --with-pg=/usr/bin/pg_config \
         --with-xerces=yes
-RUN make -j4 && make install && ldconfig
+RUN make -j$PROCESSORS && make install && ldconfig
+
+# GDAL Python Bindings
 RUN apt-get install -y python-gdal
 
-# Configure
+# Configure GRASS
 RUN apt-get install -y libmysqlclient-dev
 WORKDIR /usr/local/src/grass70_release
 RUN CFLAGS="-O2 -Wall" LDFLAGS="-s" ./configure \
@@ -138,8 +137,8 @@ RUN CFLAGS="-O2 -Wall" LDFLAGS="-s" ./configure \
         --with-liblas=yes --with-liblas-config="/usr/bin/liblas-config" \
         --with-netcdf="/usr/bin/nc-config"
 
-# Build and install
-RUN make -j4 && make install && ldconfig
+# Build and install GRASS
+RUN make -j$PROCESSORS && make install && ldconfig
 
 # WPS Grass Bridge
 WORKDIR /tmp
@@ -161,12 +160,23 @@ RUN chown tomcat7:tomcat7 /usr/local/grass-7.0.0svn/demolocation && \
     chown tomcat7:tomcat7 /usr/local/wps_grass_bridge && \
     chown tomcat7:tomcat7 /usr/local/wps_grass_bridge/gms && \
     chown tomcat7:tomcat7 /var/grass/tmp && \
-    chmod 777 -R /var/grass/tmp
+    chown -R tomcat7:tomcat7 /usr/local/src && \
+    chmod 777 -R /var/grass/tmp && \
+    chmod -R ug+rwx /usr/local/src
 
 WORKDIR /tmp
 
+# Setup supervisor ----------------------------------------------------------------------------------------------------#
+ADD supervisor/supervisord.conf /etc/supervisor/conf.d/
+
 # Ports
 EXPOSE 8080
+
+# Add VOLUMEs to for inspection, datastorage, and backup --------------------------------------------------------------#
+VOLUME  ["/var/log/tomcat7", "/var/log/supervisor"]
+
+# Startup command
+#CMD ["/usr/bin/supervisord"]
 
 CMD ["bash"]
 
