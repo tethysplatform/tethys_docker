@@ -149,10 +149,10 @@
         <Repository name="GrassRepository" className="org.n52.wps.server.grass.GrassProcessRepository" active="true">
           <Property name="GISRC_Dir" active="true">/usr/local/grass-7.0.0svn/demolocation/.grassrc70</Property>
           <Property name="Grass_Home" active="true">/usr/local/grass-7.0.0svn</Property>
-          <Property name="ModuleStarter_Home" active="true">/usr/local/wps-grass-bridge/gms</Property>
+          <Property name="ModuleStarter_Home" active="true">/usr/local/wps_grass_bridge/gms</Property>
           <Property name="Python_Home" active="true">/usr/bin</Property>
           <Property name="Python_Path" active="true">/usr/lib/python2.7</Property>
-          <Property name="TMP_Dir" active="true">/tmp/grass_tmp</Property>
+          <Property name="TMP_Dir" active="true">/var/grass/tmp</Property>
           <Property name="Algorithm" active="true">i.atcorr</Property>
 		  <Property name="Algorithm" active="true">i.biomass</Property>
 		  <Property name="Algorithm" active="true">i.cca</Property>

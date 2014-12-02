@@ -2,6 +2,9 @@
 #
 # 52 North WPS 3.3.0
 # Tomcat 7
+# PROJ4 4.8
+# GEOS 3.4.2
+# GDAL 1.11
 # GRASS 7.0.0
 # Sextante
 #
@@ -10,6 +13,9 @@
 FROM ubuntu:14.04
 
 MAINTAINER Nathan Swain nathan.swain@byu.net
+
+# Vars
+ENV PROCESSORS 4
 
 # Apt setup -----------------------------------------------------------------------------------------------------------#
 RUN apt-get update -y && apt-get upgrade -y
@@ -50,39 +56,22 @@ RUN apt-get install -y \
       libglu1-mesa-dev libxmu-dev \
       netcdf-bin libnetcdf-dev
 
-# Download and explode 52 North WPS -----------------------------------------------------------------------------------#
-ADD wps/wps.war /tmp/wps.war
-RUN mkdir /usr/share/tomcat7-wps
-RUN unzip -d /usr/share/tomcat7-wps/wps /tmp/wps.war
-RUN rm /tmp/wps.war
-
-# Setup the Tomcat context
-ADD tomcat/wps.xml /etc/tomcat7/Catalina/localhost/
-
 # Build and Install GRASS and Dependencies from Source ----------------------------------------------------------------#
 WORKDIR /usr/local/src
 RUN svn co https://svn.osgeo.org/grass/grass/branches/releasebranch_7_0 grass70_release
 RUN svn co http://svn.osgeo.org/metacrs/proj/branches/4.8/proj/
 
-
-# Install PROJ4, GEOS, and GDAL
-ENV PROCESSORS 3
-
 # PROJ4
-WORKDIR /tmp
-RUN wget http://download.osgeo.org/proj/proj-datumgrid-1.5.zip && \
-    mv proj-datumgrid-1.5.zip /usr/local/src/proj/nad
+COPY resources/proj-datumgrid-1.5.zip /usr/local/src/proj/nad/
 WORKDIR /usr/local/src/proj/nad
 RUN unzip -o proj-datumgrid-1.5.zip
 WORKDIR /usr/local/src/proj
-RUN ./configure && make -j$PROCESSORS && make install
-RUN ldconfig
+RUN ./configure && make -j$PROCESSORS && make install && ldconfig
 
 # GEOS
-WORKDIR /tmp
-RUN wget http://download.osgeo.org/geos/geos-3.4.2.tar.bz2 && \
-    mv geos-3.4.2.tar.bz2 /usr/local/src
+COPY resources/geos-3.4.2.tar.bz2 /usr/local/src/
 WORKDIR /usr/local/src
+RUN ls
 RUN bunzip2 geos-3.4.2.tar.bz2
 RUN tar xvf geos-3.4.2.tar
 WORKDIR /usr/local/src/geos-3.4.2
@@ -140,34 +129,45 @@ RUN CFLAGS="-O2 -Wall" LDFLAGS="-s" ./configure \
 # Build and install GRASS
 RUN make -j$PROCESSORS && make install && ldconfig
 
-# WPS Grass Bridge
-WORKDIR /tmp
-RUN wget "http://52north.org/files/geoprocessing/GRASS/wps-grass-bridge-patched.zip"
-RUN mkdir /usr/local/wps_grass_bridge && \
-    cp /tmp/wps-grass-bridge-patched.zip /usr/local/wps_grass_bridge
+# Download 52 North WPS and configure ---------------------------------------------------------------------------------#
+COPY wps/wps.war /tmp/
+RUN mkdir -p /usr/share/tomcat7-wps
+RUN unzip -d /usr/share/tomcat7-wps/wps /tmp/wps.war
+RUN rm /tmp/wps.war
+
+RUN rm /usr/share/tomcat7-wps/wps/config/wps_config.xml
+COPY wps/wps_config.xml /usr/share/tomcat7-wps/wps/config/
+
+# Setup the Tomcat context
+COPY tomcat/wps.xml /etc/tomcat7/Catalina/localhost/
+
+# WPS Grass Bridge ----------------------------------------------------------------------------------------------------#
+RUN mkdir /usr/local/wps_grass_bridge
+COPY resources/wps-grass-bridge-patched.zip /usr/local/wps_grass_bridge/
 WORKDIR /usr/local/wps_grass_bridge
 RUN unzip wps-grass-bridge-patched.zip && \
     rm wps-grass-bridge-patched.zip && \
     mkdir -p /var/grass/tmp
 
-# Configure 52 North Processes
-RUN rm /usr/share/tomcat7-wps/wps/config/wps_config.xml
-ADD wps/wps_config.xml /usr/share/tomcat7-wps/wps/config/
-
 # Set Permissions
 RUN chown tomcat7:tomcat7 /usr/local/grass-7.0.0svn/demolocation && \
     chown tomcat7:tomcat7 /usr/local/grass-7.0.0svn/demolocation/PERMANENT && \
-    chown tomcat7:tomcat7 /usr/local/wps_grass_bridge && \
-    chown tomcat7:tomcat7 /usr/local/wps_grass_bridge/gms && \
-    chown tomcat7:tomcat7 /var/grass/tmp && \
-    chown -R tomcat7:tomcat7 /usr/local/src && \
-    chmod 777 -R /var/grass/tmp && \
-    chmod -R ug+rwx /usr/local/src
+    chmod 777 /usr/local/grass-7.0.0svn/demolocation && \
+    chmod 777 /usr/local/grass-7.0.0svn/demolocation/PERMANENT
 
-WORKDIR /tmp
+RUN chown -R tomcat7:tomcat7 /usr/local/wps_grass_bridge && \
+    chmod -R 777 /usr/local/wps_grass_bridge
+
+RUN chown tomcat7:tomcat7 /var/grass/tmp && \
+    chmod 777 -R /var/grass/tmp
+
+RUN chown -R tomcat7:tomcat7 /usr/local/src && \
+    chmod -R 777 /usr/local/src
+
+WORKDIR /var/grass/tmp
 
 # Setup supervisor ----------------------------------------------------------------------------------------------------#
-ADD supervisor/supervisord.conf /etc/supervisor/conf.d/
+COPY supervisor/supervisord.conf /etc/supervisor/conf.d/
 
 # Ports
 EXPOSE 8080
