@@ -1,5 +1,3 @@
-# 52 North Web Processing Service
-#
 # 52 North WPS 3.3.0
 # Tomcat 7
 # PROJ4 4.8
@@ -7,15 +5,10 @@
 # GDAL 1.11
 # GRASS 7.0.0
 # Sextante
-#
-# VERSION 1.0.0
 
 FROM ubuntu:14.04
 
 MAINTAINER Nathan Swain nathan.swain@byu.net
-
-# Vars
-ENV PROCESSORS 4
 
 # Apt setup -----------------------------------------------------------------------------------------------------------#
 RUN apt-get update -y && apt-get upgrade -y
@@ -54,32 +47,36 @@ RUN apt-get install -y \
       libavformat-dev libswscale-dev \
       checkinstall \
       libglu1-mesa-dev libxmu-dev \
+      libmysqlclient-dev \
       netcdf-bin libnetcdf-dev
 
 # Build and Install GRASS and Dependencies from Source ----------------------------------------------------------------#
+
+# Vars
+ENV PROCESSORS 4
+
+# Get source
 WORKDIR /usr/local/src
-RUN svn co https://svn.osgeo.org/grass/grass/branches/releasebranch_7_0 grass70_release
-RUN svn co http://svn.osgeo.org/metacrs/proj/branches/4.8/proj/
+RUN svn co http://svn.osgeo.org/metacrs/proj/branches/4.8/proj/ && \
+    wget http://download.osgeo.org/proj/proj-datumgrid-1.5.zip && \
+    unzip -d proj/nad -o proj-datumgrid-1.5.zip && \
+    rm proj-datumgrid-1.5.zip && \
+    svn co https://svn.osgeo.org/grass/grass/branches/releasebranch_7_0 grass70_release && \
+    svn co https://svn.osgeo.org/gdal/branches/1.11/gdal gdal_stable && \
+    wget http://download.osgeo.org/geos/geos-3.4.2.tar.bz2 && \
+    bunzip2 geos-3.4.2.tar.bz2 && \
+    tar xvf geos-3.4.2.tar && \
+    rm geos-3.4.2.tar
 
 # PROJ4
-COPY resources/proj-datumgrid-1.5.zip /usr/local/src/proj/nad/
-WORKDIR /usr/local/src/proj/nad
-RUN unzip -o proj-datumgrid-1.5.zip
 WORKDIR /usr/local/src/proj
 RUN ./configure && make -j$PROCESSORS && make install && ldconfig
 
 # GEOS
-COPY resources/geos-3.4.2.tar.bz2 /usr/local/src/
-WORKDIR /usr/local/src
-RUN ls
-RUN bunzip2 geos-3.4.2.tar.bz2
-RUN tar xvf geos-3.4.2.tar
 WORKDIR /usr/local/src/geos-3.4.2
 RUN ./configure && make -j$PROCESSORS && make install && ldconfig
 
 # GDAL
-WORKDIR /usr/local/src
-RUN svn co https://svn.osgeo.org/gdal/branches/1.11/gdal gdal_stable
 WORKDIR /usr/local/src/gdal_stable
 RUN CFLAGS="-g -Wall" LDFLAGS="-s" ./configure \
         --with-png=internal \
@@ -98,14 +95,11 @@ RUN CFLAGS="-g -Wall" LDFLAGS="-s" ./configure \
         --without-grass  \
         --without-ogdi \
         --with-pg=/usr/bin/pg_config \
-        --with-xerces=yes
-RUN make -j$PROCESSORS && make install && ldconfig
-
-# GDAL Python Bindings
-RUN apt-get install -y python-gdal
+        --with-xerces=yes && \
+    make -j$PROCESSORS && make install && ldconfig && \
+    apt-get install -y python-gdal
 
 # Configure GRASS
-RUN apt-get install -y libmysqlclient-dev
 WORKDIR /usr/local/src/grass70_release
 RUN CFLAGS="-O2 -Wall" LDFLAGS="-s" ./configure \
         --enable-largefile=yes \
@@ -124,18 +118,17 @@ RUN CFLAGS="-O2 -Wall" LDFLAGS="-s" ./configure \
         --with-mysql=yes --with-mysql-includes="/usr/include/mysql" \
         --with-odbc=no \
         --with-liblas=yes --with-liblas-config="/usr/bin/liblas-config" \
-        --with-netcdf="/usr/bin/nc-config"
-
-# Build and install GRASS
-RUN make -j$PROCESSORS && make install && ldconfig
+        --with-netcdf="/usr/bin/nc-config" && \
+    make -j$PROCESSORS && make install && ldconfig
 
 # Download 52 North WPS and configure ---------------------------------------------------------------------------------#
 COPY wps/wps.war /tmp/
-RUN mkdir -p /usr/share/tomcat7-wps
-RUN unzip -d /usr/share/tomcat7-wps/wps /tmp/wps.war
-RUN rm /tmp/wps.war
+RUN mkdir -p /usr/share/tomcat7-wps && \
+    unzip -d /usr/share/tomcat7-wps/wps /tmp/wps.war && \
+    rm /tmp/wps.war && \
+    rm /usr/share/tomcat7-wps/wps/config/wps_config.xml
 
-RUN rm /usr/share/tomcat7-wps/wps/config/wps_config.xml
+# Custom config
 COPY wps/wps_config.xml /usr/share/tomcat7-wps/wps/config/
 
 # Setup the Tomcat context
@@ -153,15 +146,12 @@ RUN unzip wps-grass-bridge-patched.zip && \
 RUN chown tomcat7:tomcat7 /usr/local/grass-7.0.0svn/demolocation && \
     chown tomcat7:tomcat7 /usr/local/grass-7.0.0svn/demolocation/PERMANENT && \
     chmod 777 /usr/local/grass-7.0.0svn/demolocation && \
-    chmod 777 /usr/local/grass-7.0.0svn/demolocation/PERMANENT
-
-RUN chown -R tomcat7:tomcat7 /usr/local/wps_grass_bridge && \
-    chmod -R 777 /usr/local/wps_grass_bridge
-
-RUN chown tomcat7:tomcat7 /var/grass/tmp && \
-    chmod 777 -R /var/grass/tmp
-
-RUN chown -R tomcat7:tomcat7 /usr/local/src && \
+    chmod 777 /usr/local/grass-7.0.0svn/demolocation/PERMANENT && \
+    chown -R tomcat7:tomcat7 /usr/local/wps_grass_bridge && \
+    chmod -R 777 /usr/local/wps_grass_bridge && \
+    chown tomcat7:tomcat7 /var/grass/tmp && \
+    chmod 777 -R /var/grass/tmp && \
+    chown -R tomcat7:tomcat7 /usr/local/src && \
     chmod -R 777 /usr/local/src
 
 WORKDIR /var/grass/tmp
@@ -174,6 +164,13 @@ EXPOSE 8080
 
 # Add VOLUMEs to for inspection, datastorage, and backup --------------------------------------------------------------#
 VOLUME  ["/var/log/tomcat7", "/var/log/supervisor"]
+
+# Set log level to DEBUG in Tomcat7 -----------------------------------------------------------------------------------#
+RUN rm /usr/share/tomcat7-wps/wps/WEB-INF/classes/logback.xml
+COPY wps/logback.xml /usr/share/tomcat7-wps/wps/WEB-INF/classes/
+
+RUN rm /etc/tomcat7/logging.properties
+COPY tomcat/logging.properties /etc/tomcat7/
 
 # Startup command
 #CMD ["/usr/bin/supervisord"]
