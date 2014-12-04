@@ -8,7 +8,7 @@
 
 This Docker provides a 52 North Web Processing Service instance with the GRASS and Sextante backends enabled. The Dockerfile and context can be found in this repository:
 
- ::
+::
 
     https://github.com/CI-WATER/tethys_docker
 
