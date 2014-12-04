@@ -29,11 +29,11 @@ There are two ways to install this Docker:
 
 2. Build from source:
 
-::
+    ::
 
-    $ git clone https://github.com/CI-WATER/tethys_docker.git
-    $ cd tethys_docker/n52wps
-    $ sudo docker build -t ciwater/n52wps .
+        $ git clone https://github.com/CI-WATER/tethys_docker.git
+        $ cd tethys_docker/n52wps
+        $ sudo docker build -t ciwater/n52wps .
 
 Run Container
 =============
