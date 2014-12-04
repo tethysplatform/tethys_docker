@@ -136,9 +136,9 @@ COPY tomcat/wps.xml /etc/tomcat7/Catalina/localhost/
 
 # WPS Grass Bridge ----------------------------------------------------------------------------------------------------#
 RUN mkdir /usr/local/wps_grass_bridge
-COPY resources/wps-grass-bridge-patched.zip /usr/local/wps_grass_bridge/
 WORKDIR /usr/local/wps_grass_bridge
-RUN unzip wps-grass-bridge-patched.zip && \
+RUN wget http://52north.org/files/geoprocessing/GRASS/wps-grass-bridge-patched.zip && \
+    unzip wps-grass-bridge-patched.zip && \
     rm wps-grass-bridge-patched.zip && \
     mkdir -p /var/grass/tmp
 
