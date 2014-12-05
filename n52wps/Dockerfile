@@ -125,11 +125,16 @@ RUN CFLAGS="-O2 -Wall" LDFLAGS="-s" ./configure \
 COPY wps/wps.war /tmp/
 RUN mkdir -p /usr/share/tomcat7-wps && \
     unzip -d /usr/share/tomcat7-wps/wps /tmp/wps.war && \
-    rm /tmp/wps.war && \
-    rm /usr/share/tomcat7-wps/wps/config/wps_config.xml
+    rm /tmp/wps.war
+
+# GeoTools
+COPY wps/wps-3.3.0-geotools-package.zip /usr/share/tomcat7-wps/wps/
+WORKDIR /usr/share/tomcat7-wps/wps
+RUN unzip -o wps-3.3.0-geotools-package.zip
 
 # Custom config
-COPY wps/wps_config.xml /usr/share/tomcat7-wps/wps/config/
+COPY wps/wps_config_geotools.xml /usr/share/tomcat7-wps/wps/config/wps_config_geotools.xml
+COPY wps/wps_config.xml /usr/share/tomcat7-wps/wps/config/wps_config.xml
 
 # Setup the Tomcat context
 COPY tomcat/wps.xml /etc/tomcat7/Catalina/localhost/
@@ -137,8 +142,8 @@ COPY tomcat/wps.xml /etc/tomcat7/Catalina/localhost/
 # WPS Grass Bridge ----------------------------------------------------------------------------------------------------#
 RUN mkdir /usr/local/wps_grass_bridge
 WORKDIR /usr/local/wps_grass_bridge
-RUN wget http://52north.org/files/geoprocessing/GRASS/wps-grass-bridge-patched.zip && \
-    unzip wps-grass-bridge-patched.zip && \
+COPY wps/wps-grass-bridge-patched.zip /usr/local/wps_grass_bridge/
+RUN unzip wps-grass-bridge-patched.zip && \
     rm wps-grass-bridge-patched.zip && \
     mkdir -p /var/grass/tmp
 
@@ -152,12 +157,17 @@ RUN chown tomcat7:tomcat7 /usr/local/grass-7.0.0svn/demolocation && \
     chown tomcat7:tomcat7 /var/grass/tmp && \
     chmod 777 -R /var/grass/tmp && \
     chown -R tomcat7:tomcat7 /usr/local/src && \
-    chmod -R 777 /usr/local/src
+    chmod -R 777 /usr/local/src && \
+    chown -R tomcat7:tomcat7 /usr/share/tomcat7-wps/wps
 
 WORKDIR /var/grass/tmp
 
 # Setup supervisor ----------------------------------------------------------------------------------------------------#
 COPY supervisor/supervisord.conf /etc/supervisor/conf.d/
+
+# Bug fix for Ubuntu Python
+# see: http://stackoverflow.com/questions/15608236/eclipse-and-google-app-engine-importerror-no-module-named-sysconfigdata-nd-u
+RUN ln -s /usr/lib/python2.7/plat-*/_sysconfigdata_nd.py /usr/lib/python2.7/
 
 # Ports
 EXPOSE 8080

@@ -14,8 +14,8 @@ RUN apt-get install -y tomcat7 tomcat7-admin
 
 # Download GeoServer and Configure ------------------------------------------------------------------------------------#
 WORKDIR /tmp
-RUN wget "http://sourceforge.net/projects/geoserver/files/GeoServer/2.6.1/geoserver-2.6.1-war.zip"
-RUN unzip geoserver-2.6.1-war.zip && \
+RUN wget "http://sourceforge.net/projects/geoserver/files/GeoServer/2.6.1/geoserver-2.6.1-war.zip" && \
+    unzip geoserver-2.6.1-war.zip && \
     mv geoserver.war /var/lib/tomcat7/webapps
 
 # Setup supervisor ----------------------------------------------------------------------------------------------------#

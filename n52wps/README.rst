@@ -10,7 +10,7 @@ This Docker provides a 52 North Web Processing Service instance with the GRASS a
 
 ::
 
-    https://github.com/CI-WATER/tethys_docker
+    sudohttps://github.com/CI-WATER/tethys_docker
 
 .. note::
 
