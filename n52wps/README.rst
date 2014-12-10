@@ -2,10 +2,6 @@
 52 North WPS Docker
 *******************
 
-.. warning::
-
-    This Docker is currently unstable. Use at your own risk.
-
 This Docker provides a 52 North Web Processing Service instance with the GRASS and Sextante backends enabled. The Dockerfile and context can be found in this repository:
 
 ::
@@ -57,7 +53,7 @@ Browse to `<http://localhost:8080/wps>`_ to see your instance of 52North WPS run
 
     The above command will map the Docker's port 8080 to the host 8080. If your port 8080 is not available, modify the command to use a port that works for you.
 
-See <Docker Documentation `<https://docs.docker.com/>`_ for more information about how to use Docker containers.
+See `Docker Documentation <https://docs.docker.com/>`_ for more information about how to use Docker containers.
 
 Configuration
 =============
