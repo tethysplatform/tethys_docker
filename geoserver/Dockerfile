@@ -6,7 +6,7 @@ MAINTAINER Nathan Swain nathan.swain@byu.net
 
 # Apt setup -----------------------------------------------------------------------------------------------------------#
 RUN apt-get update -y && apt-get upgrade -y
-RUN apt-get install -y wget sudo curl ssh vim unzip supervisor
+RUN apt-get install -y wget sudo ssh unzip vim
 
 # Install Tomcat Dependencies -----------------------------------------------------------------------------------------#
 RUN apt-get install -y openjdk-7-jre
@@ -19,6 +19,7 @@ RUN wget "http://sourceforge.net/projects/geoserver/files/GeoServer/2.6.1/geoser
     mv geoserver.war /var/lib/tomcat7/webapps
 
 # Setup supervisor ----------------------------------------------------------------------------------------------------#
+RUN apt-get install supervisor
 COPY supervisor/supervisord.conf /etc/supervisor/conf.d/
 
 # Ports
@@ -30,6 +31,7 @@ VOLUME  ["/var/log/tomcat7", "/var/log/supervisor"]
 # Startup command
 #CMD ["/usr/bin/supervisord"]
 
+# VIM for debugging
 CMD ["bash"]
 
 

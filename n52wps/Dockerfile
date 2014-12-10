@@ -12,11 +12,7 @@ MAINTAINER Nathan Swain nathan.swain@byu.net
 
 # Apt setup -----------------------------------------------------------------------------------------------------------#
 RUN apt-get update -y && apt-get upgrade -y
-RUN apt-get install -y wget sudo curl ssh vim unzip supervisor
-
-# Install Tomcat Dependencies -----------------------------------------------------------------------------------------#
-RUN apt-get install -y openjdk-7-jre
-RUN apt-get install -y tomcat7 tomcat7-admin
+RUN apt-get install -y wget sudo ssh unzip vim
 
 # Install GRASS Dependencies ------------------------------------------------------------------------------------------#
 RUN apt-get install -y \
@@ -121,6 +117,13 @@ RUN CFLAGS="-O2 -Wall" LDFLAGS="-s" ./configure \
         --with-netcdf="/usr/bin/nc-config" && \
     make -j$PROCESSORS && make install && ldconfig
 
+# Install Tomcat Dependencies -----------------------------------------------------------------------------------------#
+RUN apt-get install -y openjdk-7-jre
+RUN apt-get install -y tomcat7 tomcat7-admin supervisor
+
+# Setup supervisor ----------------------------------------------------------------------------------------------------#
+COPY supervisor/supervisord.conf /etc/supervisor/conf.d/
+
 # Download 52 North WPS and configure ---------------------------------------------------------------------------------#
 COPY wps/wps.war /tmp/
 RUN mkdir -p /usr/share/tomcat7-wps && \
@@ -147,6 +150,10 @@ RUN unzip wps-grass-bridge-patched.zip && \
     rm wps-grass-bridge-patched.zip && \
     mkdir -p /var/grass/tmp
 
+# Bug fix for Ubuntu Python
+# see: http://stackoverflow.com/questions/15608236/eclipse-and-google-app-engine-importerror-no-module-named-sysconfigdata-nd-u
+RUN ln -s /usr/lib/python2.7/plat-*/_sysconfigdata_nd.py /usr/lib/python2.7/
+
 # Set Permissions
 RUN chown tomcat7:tomcat7 /usr/local/grass-7.0.0svn/demolocation && \
     chown tomcat7:tomcat7 /usr/local/grass-7.0.0svn/demolocation/PERMANENT && \
@@ -162,30 +169,23 @@ RUN chown tomcat7:tomcat7 /usr/local/grass-7.0.0svn/demolocation && \
 
 WORKDIR /var/grass/tmp
 
-# Setup supervisor ----------------------------------------------------------------------------------------------------#
-COPY supervisor/supervisord.conf /etc/supervisor/conf.d/
-
-# Bug fix for Ubuntu Python
-# see: http://stackoverflow.com/questions/15608236/eclipse-and-google-app-engine-importerror-no-module-named-sysconfigdata-nd-u
-RUN ln -s /usr/lib/python2.7/plat-*/_sysconfigdata_nd.py /usr/lib/python2.7/
-
 # Ports
 EXPOSE 8080
 
-# Add VOLUMEs to for inspection, datastorage, and backup --------------------------------------------------------------#
-VOLUME  ["/var/log/tomcat7", "/var/log/supervisor"]
+# Add VOLUMES for inspection, datastorage, and backup -----------------------------------------------------------------#
+VOLUME  ["/var/log/tomcat7", "/var/log/supervisor", "var/grass/tmp"]
 
 # Set log level to DEBUG in Tomcat7 -----------------------------------------------------------------------------------#
-RUN rm /usr/share/tomcat7-wps/wps/WEB-INF/classes/logback.xml
-COPY wps/logback.xml /usr/share/tomcat7-wps/wps/WEB-INF/classes/
+# RUN rm /usr/share/tomcat7-wps/wps/WEB-INF/classes/logback.xml
+# COPY wps/logback.xml /usr/share/tomcat7-wps/wps/WEB-INF/classes/
 
-RUN rm /etc/tomcat7/logging.properties
-COPY tomcat/logging.properties /etc/tomcat7/
+# RUN rm /etc/tomcat7/logging.properties
+# COPY tomcat/logging.properties /etc/tomcat7/logging.prop
 
-# Startup command
-#CMD ["/usr/bin/supervisord"]
-
-CMD ["bash"]
+# Initialize
+COPY startup.sh /usr/share/tomcat7-wps/startup.sh
+RUN chmod +x /usr/share/tomcat7-wps/startup.sh
+CMD ["/usr/share/tomcat7-wps/startup.sh"]
 
 
 

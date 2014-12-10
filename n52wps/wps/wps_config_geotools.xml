@@ -709,6 +709,7 @@
 			<Property name="Algorithm" active="true">r.li.simpson</Property>
 			<Property name="Algorithm" active="true">r.los</Property>
 			<Property name="Algorithm" active="true">r.mapcalc</Property>
+			<Property name="Algorithm" active="true">r.math</Property>
 			<Property name="Algorithm" active="true">r.mfilter</Property>
 			<Property name="Algorithm" active="true">r.mode</Property>
 			<Property name="Algorithm" active="true">r.neighbors</Property>
@@ -789,6 +790,7 @@
 			<Property name="Algorithm" active="true">v.build.polylines</Property>
 			<Property name="Algorithm" active="true">v.category</Property>
 			<Property name="Algorithm" active="true">v.class</Property>
+			<Property name="Algorithm" active="true">v.clean</Property>
 			<Property name="Algorithm" active="true">v.convert</Property>
 			<Property name="Algorithm" active="true">v.db.connect</Property>
 			<Property name="Algorithm" active="true">v.db.select</Property>
