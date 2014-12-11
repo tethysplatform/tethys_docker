@@ -1,4 +1,4 @@
-# 52 North WPS 3.3.0
+# 52 North WPS 3.3.1
 # Tomcat 7
 # PROJ4 4.8
 # GEOS 3.4.2
@@ -124,20 +124,23 @@ RUN apt-get install -y tomcat7 tomcat7-admin supervisor
 # Setup supervisor ----------------------------------------------------------------------------------------------------#
 COPY supervisor/supervisord.conf /etc/supervisor/conf.d/
 
+# 52North Version
+ENV WPS_VERSION 3.3.1
+
 # Download 52 North WPS and configure ---------------------------------------------------------------------------------#
-COPY wps/wps.war /tmp/
+COPY wps/$WPS_VERSION/wps.war /tmp/
 RUN mkdir -p /usr/share/tomcat7-wps && \
     unzip -d /usr/share/tomcat7-wps/wps /tmp/wps.war && \
     rm /tmp/wps.war
 
 # GeoTools
-COPY wps/wps-3.3.0-geotools-package.zip /usr/share/tomcat7-wps/wps/
+COPY wps/$WPS_VERSION/wps-$WPS_VERSION-geotools-package.zip /usr/share/tomcat7-wps/wps/
 WORKDIR /usr/share/tomcat7-wps/wps
-RUN unzip -o wps-3.3.0-geotools-package.zip
+RUN unzip -o wps-$WPS_VERSION-geotools-package.zip
 
 # Custom config
-COPY wps/wps_config_geotools.xml /usr/share/tomcat7-wps/wps/config/wps_config_geotools.xml
-COPY wps/wps_config.xml /usr/share/tomcat7-wps/wps/config/wps_config.xml
+COPY wps/$WPS_VERSION/wps_config_geotools.xml /usr/share/tomcat7-wps/wps/config/wps_config_geotools.xml
+COPY wps/$WPS_VERSION/wps_config.xml /usr/share/tomcat7-wps/wps/config/wps_config.xml
 
 # Setup the Tomcat context
 COPY tomcat/wps.xml /etc/tomcat7/Catalina/localhost/
@@ -175,17 +178,16 @@ EXPOSE 8080
 # Add VOLUMES for inspection, datastorage, and backup -----------------------------------------------------------------#
 VOLUME  ["/var/log/tomcat7", "/var/log/supervisor", "var/grass/tmp"]
 
-# Set log level to DEBUG in Tomcat7 -----------------------------------------------------------------------------------#
-# RUN rm /usr/share/tomcat7-wps/wps/WEB-INF/classes/logback.xml
-# COPY wps/logback.xml /usr/share/tomcat7-wps/wps/WEB-INF/classes/
-
-# RUN rm /etc/tomcat7/logging.properties
-# COPY tomcat/logging.properties /etc/tomcat7/logging.prop
-
 # Initialize
 COPY startup.sh /usr/share/tomcat7-wps/startup.sh
 RUN chmod +x /usr/share/tomcat7-wps/startup.sh
+
+# For debugging
+COPY wps/logback_debug.xml /usr/share/tomcat7-wps/wps/WEB-INF/classes/logback.xml
+
 CMD ["/usr/share/tomcat7-wps/startup.sh"]
+
+
 
 
 
