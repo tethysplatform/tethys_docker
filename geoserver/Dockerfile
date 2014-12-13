@@ -60,11 +60,14 @@ RUN jar -xvf geoserver.war && \
 # Custom GeoServer Web Config
 COPY web.xml /var/lib/tomcat7/webapps/geoserver/WEB-INF/web.xml
 
+# Set Heap Settings for Tomcat
+ENV CATALINA_OPTS "-Xms1g -Xmx2g -XX:MaxPermSize=512m"
+
 # Ports
 EXPOSE 8080
 
 # Add VOLUMEs to for inspection, datastorage, and backup --------------------------------------------------------------#
-VOLUME  ["/var/log/tomcat7", "/var/log/supervisor"]
+VOLUME  ["/var/log/tomcat7", "/var/log/supervisor", "/var/lib/geoserver/data"]
 
 # Startup command
 #CMD ["/usr/bin/supervisord"]
