@@ -33,21 +33,35 @@ RUN wget http://download.java.net/media/jai/builds/release/1_1_3/jai-1_1_3-lib-l
 
 ENV JAIHOME /usr/lib/jai-1_1_3/lib
 ENV JIOHOME /usr/lib/jai_imageio-1_1/lib
-ENV CLASSPATH $JAIHOME/jai_core.jar:$JAIHOME/jai_codec.jar:$JAIHOME/mlibwrapper_jai.jar:$JIOHOME/jai_imageio.jar:$JIOHOME/clibwrapper_jiio.jar:$CLASSPATH
+ENV CLASSPATH $JAIHOME/jai_core.jar:$JAIHOME/jai_codec.jar:$JAIHOME/mlibwrapper_jai.jar:$JIOHOME/jai_imageio.jar:$JIOHOME/clibwrapper_jiio.jar
 ENV LD_LIBRARY_PATH .:$JAIHOME:$CLASSPATH:$JIOHOME
 
-# Download GeoServer and Configure ------------------------------------------------------------------------------------#
-WORKDIR /tmp
-COPY geoserver.war /var/lib/tomcat7/webapps/
+# Install the Unlimited Strength Jurisdiction Policy files ------------------------------------------------------------#
+COPY local_policy.jar $JAVA_HOME/lib/security/local_policy.jar
+COPY US_export_policy.jar $JAVA_HOME/lib/security/US_export_policy.jar
 
 # Setup supervisor ----------------------------------------------------------------------------------------------------#
 RUN apt-get -y install supervisor
 COPY supervisord.conf /etc/supervisor/conf.d/
 
+# Download GeoServer and Configure ------------------------------------------------------------------------------------#
+ENV GEOSERVER_DATA_DIR /var/lib/geoserver/data
+ENV GEOSERVER_HOME /var/lib/tomcat7/webapps/geoserver
+
+# Unpack the war and make a new data directory
+COPY geoserver.war /var/lib/tomcat7/webapps/geoserver/geoserver.war
+WORKDIR /var/lib/tomcat7/webapps/geoserver
+RUN jar -xvf geoserver.war && \
+    mv geoserver.war ../ && \
+    mkdir -p /var/lib/geoserver/ && \
+    cp -r data /var/lib/geoserver && \
+    chown -R tomcat7:tomcat7 $GEOSERVER_DATA_DIR
+
+# Custom GeoServer Web Config
+COPY web.xml /var/lib/tomcat7/webapps/geoserver/WEB-INF/web.xml
+
 # Ports
 EXPOSE 8080
-
-
 
 # Add VOLUMEs to for inspection, datastorage, and backup --------------------------------------------------------------#
 VOLUME  ["/var/log/tomcat7", "/var/log/supervisor"]
