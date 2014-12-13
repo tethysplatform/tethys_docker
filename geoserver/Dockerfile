@@ -61,6 +61,8 @@ RUN jar -xvf geoserver.war && \
 COPY web.xml /var/lib/tomcat7/webapps/geoserver/WEB-INF/web.xml
 
 # Set Heap Settings for Tomcat
+# See: http://stackoverflow.com/questions/13971380/java-lang-outofmemoryerror-permgen-space-with-tomcat7-windows-service
+# And: http://stackoverflow.com/questions/6897476/tomcat-7-how-to-set-initial-heap-size-correctly
 ENV CATALINA_OPTS "-Xms1g -Xmx2g -XX:MaxPermSize=512m"
 
 # Ports
