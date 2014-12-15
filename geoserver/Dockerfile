@@ -17,8 +17,6 @@ RUN echo oracle-java7-installer shared/accepted-oracle-license-v1-1 select true 
     rm -rf /var/lib/apt/lists/* && \
     rm -rf /var/cache/oracle-jdk7-installer
 
-RUN apt-get update && apt-get install -y tomcat7
-
 # JAVA_HOME variable
 ENV JAVA_HOME /usr/lib/jvm/java-7-oracle
 
@@ -63,7 +61,11 @@ COPY web.xml /var/lib/tomcat7/webapps/geoserver/WEB-INF/web.xml
 # Set Heap Settings for Tomcat
 # See: http://stackoverflow.com/questions/13971380/java-lang-outofmemoryerror-permgen-space-with-tomcat7-windows-service
 # And: http://stackoverflow.com/questions/6897476/tomcat-7-how-to-set-initial-heap-size-correctly
-ENV CATALINA_OPTS "-Xms1g -Xmx2g -XX:MaxPermSize=512m"
+ENV CATALINA_OPTS "-Xms1024m -Xmx2048m -XX:MaxPermSize=512m"
+
+# Add startup script --------------------------------------------------------------------------------------------------#
+COPY startup.sh /usr/local/bin/startup.sh
+RUN chmod +x /usr/local/bin/startup.sh
 
 # Ports
 EXPOSE 8080
@@ -71,11 +73,8 @@ EXPOSE 8080
 # Add VOLUMEs to for inspection, datastorage, and backup --------------------------------------------------------------#
 VOLUME  ["/var/log/tomcat7", "/var/log/supervisor", "/var/lib/geoserver/data"]
 
-# Startup command
-#CMD ["/usr/bin/supervisord"]
-
-# VIM for debugging
-CMD ["bash"]
+# Startup
+CMD ["/usr/local/bin/startup.sh"]
 
 
 
