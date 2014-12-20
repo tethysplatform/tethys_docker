@@ -122,7 +122,7 @@ RUN apt-get install -y openjdk-7-jre
 RUN apt-get install -y tomcat7 tomcat7-admin supervisor
 
 # Setup supervisor ----------------------------------------------------------------------------------------------------#
-COPY supervisor/supervisord.conf /etc/supervisor/conf.d/
+COPY supervisord.conf /etc/supervisor/conf.d/
 
 # 52North Version
 ENV WPS_VERSION 3.3.1
@@ -143,7 +143,7 @@ COPY wps/$WPS_VERSION/wps_config_geotools.xml /usr/share/tomcat7-wps/wps/config/
 COPY wps/$WPS_VERSION/wps_config.xml /usr/share/tomcat7-wps/wps/config/wps_config.xml
 
 # Setup the Tomcat context
-COPY tomcat/wps.xml /etc/tomcat7/Catalina/localhost/
+COPY wps.xml /etc/tomcat7/Catalina/localhost/wps.xml
 
 # WPS Grass Bridge ----------------------------------------------------------------------------------------------------#
 RUN mkdir /usr/local/wps_grass_bridge
@@ -166,9 +166,17 @@ RUN chown tomcat7:tomcat7 /usr/local/grass-7.0.0svn/demolocation && \
     chmod -R 777 /usr/local/wps_grass_bridge && \
     chown tomcat7:tomcat7 /var/grass/tmp && \
     chmod 777 -R /var/grass/tmp && \
-    chown -R tomcat7:tomcat7 /usr/local/src && \
-    chmod -R 777 /usr/local/src && \
     chown -R tomcat7:tomcat7 /usr/share/tomcat7-wps/wps
+
+# For debugging
+COPY wps/logback_debug.xml /usr/share/tomcat7-wps/wps/WEB-INF/classes/logback.xml
+
+# Hack to fix 3.3.1
+RUN cd /usr/share/tomcat7-wps/ && \
+    mv wps wpshome
+
+# Set Heap Settings for Tomcat
+ENV CATALINA_OPTS -Xmx2048m -Xms48m -XX:MaxPermSize=512m
 
 WORKDIR /var/grass/tmp
 
@@ -181,9 +189,6 @@ VOLUME  ["/var/log/tomcat7", "/var/log/supervisor", "var/grass/tmp"]
 # Initialize
 COPY startup.sh /usr/share/tomcat7-wps/startup.sh
 RUN chmod +x /usr/share/tomcat7-wps/startup.sh
-
-# For debugging
-COPY wps/logback_debug.xml /usr/share/tomcat7-wps/wps/WEB-INF/classes/logback.xml
 
 CMD ["/usr/share/tomcat7-wps/startup.sh"]
 

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-WPS_ROOT=/usr/share/tomcat7-wps/wps
+WPS_ROOT=/usr/share/tomcat7-wps/wpshome
 WPS_USERS=$WPS_ROOT/WEB-INF/classes/users.xml
 SERVICE_SKELETON=$WPS_ROOT/config/wpsCapabilitiesSkeleton.xml
 
