@@ -72,4 +72,4 @@ sed "s=<ows:PostalCode></ows:PostalCode>=<ows:PostalCode>$POSTAL_CODE</ows:Posta
 sed "s=<ows:Country></ows:Country>=<ows:Country>$COUNTRY</ows:Country>=g" -i $SERVICE_SKELETON
 sed "s=<ows:ElectronicMailAddress></ows:ElectronicMailAddress>=<ows:ElectronicMailAddress>$EMAIL</ows:ElectronicMailAddress>=g" -i $SERVICE_SKELETON
 
-/usr/bin/supervisord
+/usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf

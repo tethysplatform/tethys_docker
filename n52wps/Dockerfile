@@ -119,7 +119,8 @@ RUN CFLAGS="-O2 -Wall" LDFLAGS="-s" ./configure \
 
 # Install Tomcat Dependencies -----------------------------------------------------------------------------------------#
 RUN apt-get install -y openjdk-7-jre
-RUN apt-get install -y tomcat7 tomcat7-admin supervisor
+RUN apt-get install -y tomcat7 supervisor
+RUN rm -r /var/lib/tomcat7/webapps/ROOT
 
 # Setup supervisor ----------------------------------------------------------------------------------------------------#
 COPY supervisord.conf /etc/supervisor/conf.d/
@@ -160,12 +161,8 @@ RUN ln -s /usr/lib/python2.7/plat-*/_sysconfigdata_nd.py /usr/lib/python2.7/
 # Set Permissions
 RUN chown tomcat7:tomcat7 /usr/local/grass-7.0.0svn/demolocation && \
     chown tomcat7:tomcat7 /usr/local/grass-7.0.0svn/demolocation/PERMANENT && \
-    chmod 777 /usr/local/grass-7.0.0svn/demolocation && \
-    chmod 777 /usr/local/grass-7.0.0svn/demolocation/PERMANENT && \
     chown -R tomcat7:tomcat7 /usr/local/wps_grass_bridge && \
-    chmod -R 777 /usr/local/wps_grass_bridge && \
     chown tomcat7:tomcat7 /var/grass/tmp && \
-    chmod 777 -R /var/grass/tmp && \
     chown -R tomcat7:tomcat7 /usr/share/tomcat7-wps/wps
 
 # For debugging
@@ -183,8 +180,8 @@ WORKDIR /var/grass/tmp
 # Ports
 EXPOSE 8080
 
-# Add VOLUMES for inspection, datastorage, and backup -----------------------------------------------------------------#
-VOLUME  ["/var/log/tomcat7", "/var/log/supervisor", "var/grass/tmp"]
+# Add VOLUMES for inspection, data storage, and backup ----------------------------------------------------------------#
+VOLUME  ["/var/log/tomcat7", "/var/log/supervisor", "/var/grass/tmp"]
 
 # Initialize
 COPY startup.sh /usr/share/tomcat7-wps/startup.sh
