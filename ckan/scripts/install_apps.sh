@@ -4,6 +4,7 @@ echo "Installing Apps..."
 
 # Activate virtual environment
 . $VENV_ACTIVATE
+which python
 
 # Loop through diretories in APPS_PROJECTS_DEV
 for directory in $APPS_PROJECTS_DEV/*/ ; do
@@ -13,7 +14,7 @@ for directory in $APPS_PROJECTS_DEV/*/ ; do
     then
         # Run the installation script
         cd "$directory"
-        python setup.py develop
+        python setup.py install
 
         # Toggle virtualenv activation
         deactivate
