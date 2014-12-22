@@ -5,6 +5,7 @@ server {
     client_max_body_size 100M;
     location / {
         proxy_pass http://127.0.0.1:8080/;
+        proxy_set_header X-Forwarded-For $remote_addr;
         proxy_set_header Host $host;
         proxy_cache cache;
         proxy_cache_bypass $cookie_auth_tkt;
@@ -14,4 +15,5 @@ server {
         # In emergency comment out line to force caching
         # proxy_ignore_headers X-Accel-Expires Expires Cache-Control;
     }
+
 }
