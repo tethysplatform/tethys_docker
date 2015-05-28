@@ -78,7 +78,7 @@ COPY web.xml /var/lib/tomcat7/webapps/geoserver/WEB-INF/web.xml
 
 # Set Heap Settings for Tomcat
 # See: http://docs.geoserver.org/stable/en/user/production/container.html
-ENV CATALINA_OPTS -Xmx2048m -Xms48m -XX:SoftRefLRUPolicyMSPerMB=36000 -XX:MaxPermSize=512m
+ENV CATALINA_OPTS -Xmx8192m -Xms48m -XX:SoftRefLRUPolicyMSPerMB=36000 -XX:MaxPermSize=1024m
 
 # Add startup script --------------------------------------------------------------------------------------------------#
 COPY startup.sh /usr/local/bin/startup.sh
