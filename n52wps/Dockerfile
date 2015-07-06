@@ -5,6 +5,8 @@
 # GDAL 1.11
 # GRASS 7.0.0
 # Sextante
+# R
+# Rserve
 
 FROM ubuntu:14.04
 
@@ -116,6 +118,11 @@ RUN CFLAGS="-O2 -Wall" LDFLAGS="-s" ./configure \
         --with-liblas=yes --with-liblas-config="/usr/bin/liblas-config" \
         --with-netcdf="/usr/bin/nc-config" && \
     make -j$PROCESSORS && make install && ldconfig
+
+# Install R Dependencies ----------------------------------------------------------------------------------------------#
+RUN apt-get install r-base
+RUN apt-get install r-base-dev
+RUN R --version
 
 # Install Tomcat Dependencies -----------------------------------------------------------------------------------------#
 RUN apt-get install -y openjdk-7-jre
