@@ -3,4 +3,4 @@
 # wps.out: output, double; 
 
 # calculate something...
-output = sin(input)
+output = installed.packages()

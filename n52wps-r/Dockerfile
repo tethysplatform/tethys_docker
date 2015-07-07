@@ -5,8 +5,9 @@
 # GDAL 1.11
 # GRASS 7.0.0
 # Sextante
-# R
+# R 3.2.1
 # Rserve
+# R Spatial packages
 
 FROM ubuntu:14.04
 
@@ -46,7 +47,17 @@ RUN apt-get install -y \
       checkinstall \
       libglu1-mesa-dev libxmu-dev \
       libmysqlclient-dev \
-      netcdf-bin libnetcdf-dev
+      netcdf-bin libnetcdf-dev \
+      libgeos-dev libgeos++-dev \
+      libv8-dev \ 
+      libxml2-dev \
+      pandoc \
+      qpdf \
+      r-cran-rgl \
+      xauth \
+      xfonts-base \
+      xvfb
+
 
 # Build and Install GRASS and Dependencies from Source ----------------------------------------------------------------#
 
@@ -119,20 +130,81 @@ RUN CFLAGS="-O2 -Wall" LDFLAGS="-s" ./configure \
         --with-netcdf="/usr/bin/nc-config" && \
     make -j$PROCESSORS && make install && ldconfig
 
+# Install R Dependencies from latest version debian repository --------------------------------------------------------#
+
+
 # Install R Dependencies ----------------------------------------------------------------------------------------------#
-RUN apt-get install -y r-base
-RUN apt-get install -y r-base-dev
+# RUN apt-get install -y r-base
+# RUN apt-get install -y r-base-dev
+# RUN apt-get install -y --no-install-recommends littler
+
+## Configure default locale, see https://github.com/rocker-org/rocker/issues/19
+RUN echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen \
+  && locale-gen en_US.utf8 \
+  && /usr/sbin/update-locale LANG=en_US.UTF-8
+
+ENV LC_ALL en_US.UTF-8
+ENV LANG en_US.UTF-8
+
+## Now install R and littler, and create a link for littler in /usr/local/bin
+## Also set a default CRAN repo, and make sure littler knows about it too
+RUN apt-get install -y software-properties-common
+RUN add-apt-repository ppa:marutter/rrutter
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends \
+    littler \
+    r-base \
+    r-base-dev \
+    r-recommended \
+        && echo 'options(repos = list(CRAN = "https://cran.rstudio.com/"), download.file.method = "libcurl")' >> /etc/R/Rprofile.site \
+        && echo 'source("/etc/R/Rprofile.site")' >> /etc/littler.r \
+  && ln -s /usr/share/doc/littler/examples/install.r /usr/local/bin/install.r \
+  && ln -s /usr/share/doc/littler/examples/install2.r /usr/local/bin/install2.r \
+  && ln -s /usr/share/doc/littler/examples/installGithub.r /usr/local/bin/installGithub.r \
+  && ln -s /usr/share/doc/littler/examples/testInstalled.r /usr/local/bin/testInstalled.r \
+  && install.r docopt \
+  && rm -rf /tmp/downloaded_packages/ /tmp/*.rds \
+  && rm -rf /var/lib/apt/lists/*
+
 RUN R --version
 
 # Install R Spatial Packages ------------------------------------------------------------------------------------------#
-RUN R CMD BATCH start.R; exit 0
+RUN install.r Rserve \
+      install.r Rcpp \
+      install.r geoR \
+      install.r mapdata \
+      install.r maps \
+      install.r maptools \
+      install.r RandomFields \
+      install.r plotKML \
+      install.r rgdal \
+      install.r rgeos \
+      install.r shapefiles \
+      install.r sp \
+      install.r spatstat \
+      install.r raster \
+      install.r rts \
+      install.r sos4R \
+      install.r plyr \
+      install.r reshape2 \
+      install.r ggplot2 \
+      install.r scales \
+      install.r WaterML \
+      install.r dataRetrieval \
+      install.r fields \
+      install.r xtable \
+      install.r rLakeAnalyzer \
+      install.r ncdf \
+      install.r RNetCDF
+
+# RUN R CMD BATCH start.R; exit 0
 
 # Adding start R script: for starting Rserve --------------------------------------------------------------------------#
-RUN wget http://cran.r-project.org/src/contrib/Rserve_1.7-3.tar.gz
-RUN R CMD INSTALL Rserve_1.7-3.tar.gz
+# wget http://cran.r-project.org/src/contrib/Rserve_1.7-3.tar.gz
+# RUN R CMD INSTALL Rserve_1.7-3.tar.gz
 
 # Install Tomcat Dependencies -----------------------------------------------------------------------------------------#
-RUN apt-get install -y openjdk-7-jre
+RUN apt-get update && apt-get install -y openjdk-7-jre
 RUN apt-get install -y tomcat7 supervisor
 RUN rm -r /var/lib/tomcat7/webapps/ROOT
 
