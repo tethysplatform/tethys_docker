@@ -197,12 +197,6 @@ RUN install.r Rserve \
       install.r ncdf \
       install.r RNetCDF
 
-# RUN R CMD BATCH start.R; exit 0
-
-# Adding start R script: for starting Rserve --------------------------------------------------------------------------#
-# wget http://cran.r-project.org/src/contrib/Rserve_1.7-3.tar.gz
-# RUN R CMD INSTALL Rserve_1.7-3.tar.gz
-
 # Install Tomcat Dependencies -----------------------------------------------------------------------------------------#
 RUN apt-get update && apt-get install -y openjdk-7-jre
 RUN apt-get install -y tomcat7 supervisor
