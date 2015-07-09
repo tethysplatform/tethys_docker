@@ -1,0 +1,7 @@
+# wps.des: jiri2, title = jiri2, 
+# abstract = Example Calculation with R Jiri 2; 
+# wps.in: input, integer; 
+# wps.out: output, double; 
+
+# calculate something... variable "input" doesn't have to be initialized
+output = runif(1)*input*2
