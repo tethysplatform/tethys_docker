@@ -14,8 +14,18 @@ FROM ubuntu:14.04
 MAINTAINER Nathan Swain nathan.swain@byu.net
 
 # Apt setup -----------------------------------------------------------------------------------------------------------#
-RUN apt-get update -y && apt-get upgrade -y
-RUN apt-get install -y wget sudo ssh unzip vim
+RUN apt-get update -y && apt-get upgrade -y && apt-get install -y \
+      wget \
+      sudo \
+      ssh \
+      unzip \
+      vim \
+      software-properties-common \
+      openjdk-7-jre \
+      tomcat7 \
+      supervisor \
+      && rm -r /var/lib/tomcat7/webapps/ROOT
+      
 
 # Install GRASS Dependencies ------------------------------------------------------------------------------------------#
 RUN apt-get install -y \
@@ -48,12 +58,10 @@ RUN apt-get install -y \
       libglu1-mesa-dev libxmu-dev \
       libmysqlclient-dev \
       netcdf-bin libnetcdf-dev \
-      libgeos-dev libgeos++-dev \
       libv8-dev \ 
       libxml2-dev \
       pandoc \
       qpdf \
-      r-cran-rgl \
       xauth \
       xfonts-base \
       xvfb
@@ -75,19 +83,15 @@ RUN svn co http://svn.osgeo.org/metacrs/proj/branches/4.8/proj/ && \
     wget http://download.osgeo.org/geos/geos-3.4.2.tar.bz2 && \
     bunzip2 geos-3.4.2.tar.bz2 && \
     tar xvf geos-3.4.2.tar && \
-    rm geos-3.4.2.tar
-
-# PROJ4
-WORKDIR /usr/local/src/proj
-RUN ./configure && make -j$PROCESSORS && make install && ldconfig
-
-# GEOS
-WORKDIR /usr/local/src/geos-3.4.2
-RUN ./configure && make -j$PROCESSORS && make install && ldconfig
-
-# GDAL
-WORKDIR /usr/local/src/gdal_stable
-RUN CFLAGS="-g -Wall" LDFLAGS="-s" ./configure \
+    rm geos-3.4.2.tar && \
+    cd /usr/local/src/proj && \
+    ./configure && make -j$PROCESSORS && make install && ldconfig && \
+    cd /usr/local/src/geos-3.4.2 && \
+    rm -rf /usr/local/src/proj && \
+    ./configure && make -j$PROCESSORS && make install && ldconfig && \
+    cd /usr/local/src/gdal_stable && \
+    rm -rf /usr/local/src/geos-3.4.2 && \
+    CFLAGS="-g -Wall" LDFLAGS="-s" ./configure \
         --with-png=internal \
         --with-libtiff=internal \
         --with-geotiff=internal \
@@ -106,11 +110,11 @@ RUN CFLAGS="-g -Wall" LDFLAGS="-s" ./configure \
         --with-pg=/usr/bin/pg_config \
         --with-xerces=yes && \
     make -j$PROCESSORS && make install && ldconfig && \
-    apt-get install -y python-gdal
-
-# Configure GRASS
-WORKDIR /usr/local/src/grass70_release
-RUN CFLAGS="-O2 -Wall" LDFLAGS="-s" ./configure \
+    cd /usr/local/src && \
+    rm -rf /usr/local/src/gdal_stable && \
+    apt-get install -y python-gdal && \
+    cd /usr/local/src/grass70_release && \
+    CFLAGS="-O2 -Wall" LDFLAGS="-s" ./configure \
         --enable-largefile=yes \
         --with-nls \
         --with-cxx \
@@ -128,15 +132,11 @@ RUN CFLAGS="-O2 -Wall" LDFLAGS="-s" ./configure \
         --with-odbc=no \
         --with-liblas=yes --with-liblas-config="/usr/bin/liblas-config" \
         --with-netcdf="/usr/bin/nc-config" && \
-    make -j$PROCESSORS && make install && ldconfig
-
+    make -j$PROCESSORS && make install && ldconfig && \
+    cd /usr/local/src && \
+    rm -rf /usr/local/src/grass70_release
+    
 # Install R Dependencies from latest version debian repository --------------------------------------------------------#
-
-
-# Install R Dependencies ----------------------------------------------------------------------------------------------#
-# RUN apt-get install -y r-base
-# RUN apt-get install -y r-base-dev
-# RUN apt-get install -y --no-install-recommends littler
 
 ## Configure default locale, see https://github.com/rocker-org/rocker/issues/19
 RUN echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen \
@@ -148,9 +148,8 @@ ENV LANG en_US.UTF-8
 
 ## Now install R and littler, and create a link for littler in /usr/local/bin
 ## Also set a default CRAN repo, and make sure littler knows about it too
-RUN apt-get install -y software-properties-common
-RUN add-apt-repository ppa:marutter/rrutter
-RUN apt-get update \
+RUN add-apt-repository ppa:marutter/rrutter \
+  && apt-get update \
   && apt-get install -y --no-install-recommends \
     littler \
     r-base \
@@ -195,12 +194,13 @@ RUN install.r Rserve \
       install.r xtable \
       install.r rLakeAnalyzer \
       install.r ncdf \
-      install.r RNetCDF
+      install.r RNetCDF && \
+      rm -rf /tmp/downloaded_packages/ /tmp/*.rds
 
-# Install Tomcat Dependencies -----------------------------------------------------------------------------------------#
-RUN apt-get update && apt-get install -y openjdk-7-jre
-RUN apt-get install -y tomcat7 supervisor
-RUN rm -r /var/lib/tomcat7/webapps/ROOT
+# Install Tomcat Dependencies # -----------------------------------------------------------------------------------------#
+# RUN apt-get update && apt-get install -y openjdk-7-jre
+# RUN apt-get install -y tomcat7 supervisor
+# RUN rm -r /var/lib/tomcat7/webapps/ROOT
 
 # Setup supervisor ----------------------------------------------------------------------------------------------------#
 COPY supervisord.conf /etc/supervisor/conf.d/
