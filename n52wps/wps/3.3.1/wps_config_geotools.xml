@@ -601,7 +601,7 @@
 	</Datahandlers>
 	<AlgorithmRepositoryList>
 		<Repository name="LocalRAlgorithmRepository"
-			className="org.n52.wps.server.r.LocalRAlgorithmRepository" active="false">
+			className="org.n52.wps.server.r.LocalRAlgorithmRepository" active="true">
 			<Property name="R_enableBatchStart" active="true">true</Property>
 			<Property name="R_datatypeConfig" active="true">R/R_Datatype.conf</Property>
 			<Property name="R_wdStrategy" active="true">default</Property>

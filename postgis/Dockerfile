@@ -26,23 +26,23 @@ RUN apt-get install -y postgresql-9.3 postgresql-client-9.3 postgresql-contrib-9
 # Build GDAL and GEOS from source -------------------------------------------------------------------------------------#
 ENV PROCESSORS 4
 
-WORKDIR /usr/local/src
-RUN wget http://download.osgeo.org/gdal/1.11.1/gdal-1.11.1.tar.gz && \
+RUN cd /usr/local/src && \
+    wget http://download.osgeo.org/gdal/1.11.1/gdal-1.11.1.tar.gz && \
     tar xfz gdal-1.11.1.tar.gz && \
     wget http://download.osgeo.org/geos/geos-3.4.2.tar.bz2 && \
     bunzip2 geos-3.4.2.tar.bz2 && \
     tar xvf geos-3.4.2.tar && \
-    rm geos-3.4.2.tar
-
-# GEOS
-WORKDIR /usr/local/src/geos-3.4.2
-RUN ./configure && make -j$PROCESSORS && make install && ldconfig
-
-# GDAL
-WORKDIR /usr/local/src/gdal-1.11.1
-RUN ./configure --with-python && \
+    rm geos-3.4.2.tar && \
+    rm gdal-1.11.1.tar.gz && \
+    cd /usr/local/src/geos-3.4.2 && \
+    ./configure && make -j$PROCESSORS && make install && ldconfig && \
+    cd /usr/local/src/gdal-1.11.1 && \
+    rm -rf /usr/local/src/geos-3.4.2 && \
+    ./configure --with-python && \
     make -j$PROCESSORS && make install && ldconfig && \
-    apt-get install -y python-gdal
+    apt-get install -y python-gdal && \
+    cd /usr/local/src && \
+    rm -rf /usr/local/src/gdal-1.11.1
 
 # Install PostGIS -----------------------------------------------------------------------------------------------------#
 RUN apt-get -y -q install postgresql-9.3-postgis-2.1
