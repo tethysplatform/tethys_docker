@@ -245,7 +245,9 @@ RUN ln -s /usr/lib/python2.7/plat-*/_sysconfigdata_nd.py /usr/lib/python2.7/
 #    chown tomcat7:tomcat7 /usr/local/grass-7.0.0svn/demolocation/PERMANENT && \
 RUN chown -R tomcat7:tomcat7 /usr/local/wps_grass_bridge && \
     chown tomcat7:tomcat7 /var/grass/tmp && \
-    chown -R tomcat7:tomcat7 /usr/share/tomcat7-wps/wps
+    chown -R tomcat7:tomcat7 /usr/share/tomcat7-wps/wps && \
+    mkdir -p /usr/share/tomcat7/R/x86_64-pc-linux-gnu-library/3.2/ && \
+    chown -R tomcat7:tomcat7 /usr/share/tomcat7/R/x86_64-pc-linux-gnu-library/3.2
 
 # For debugging
 COPY wps/logback_debug.xml /usr/share/tomcat7-wps/wps/WEB-INF/classes/logback.xml
