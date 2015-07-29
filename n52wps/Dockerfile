@@ -84,14 +84,14 @@ RUN svn co http://svn.osgeo.org/metacrs/proj/branches/4.8/proj/ && \
 	wget http://download.osgeo.org/geos/geos-3.4.2.tar.bz2 && \
 	bunzip2 geos-3.4.2.tar.bz2 && \
 	tar xvf geos-3.4.2.tar && \
-#	rm geos-3.4.2.tar && \
+ 	rm geos-3.4.2.tar && \
 	cd /usr/local/src/proj && \
 	./configure && make -j$PROCESSORS && make install && ldconfig && \
 	cd /usr/local/src/geos-3.4.2 && \
-#	rm -rf /usr/local/src/proj && \
+ 	rm -rf /usr/local/src/proj && \
 	./configure && make -j$PROCESSORS && make install && ldconfig && \
 	cd /usr/local/src/gdal_stable && \
-#	rm -rf /usr/local/src/geos-3.4.2 && \
+ 	rm -rf /usr/local/src/geos-3.4.2 && \
 	CFLAGS="-g -Wall" LDFLAGS="-s" ./configure \
 		--with-png=internal \
 		--with-libtiff=internal \
@@ -112,7 +112,7 @@ RUN svn co http://svn.osgeo.org/metacrs/proj/branches/4.8/proj/ && \
 		--with-xerces=yes && \
 	make -j$PROCESSORS && make install && ldconfig && \
 	cd /usr/local/src && \
-#	rm -rf /usr/local/src/gdal_stable && \
+ 	rm -rf /usr/local/src/gdal_stable && \
 	apt-get install -y python-gdal && \
 	cd /usr/local/src/grass70_release && \
 	CFLAGS="-O2 -Wall" LDFLAGS="-s" ./configure \
@@ -135,7 +135,7 @@ RUN svn co http://svn.osgeo.org/metacrs/proj/branches/4.8/proj/ && \
 		--with-netcdf="/usr/bin/nc-config" && \
 	make -j$PROCESSORS && make install && ldconfig && \
 	cd /usr/local/src # && \
-#    rm -rf /usr/local/src/grass70_release
+    rm -rf /usr/local/src/grass70_release
 	
 # Install R Dependencies from latest version debian repository --------------------------------------------------------#
 
@@ -241,7 +241,9 @@ RUN mkdir -p /usr/local/grass-7.0.0svn/demolocation && \
 	chown tomcat7:tomcat7 /usr/local/grass-7.0.0svn/demolocation/PERMANENT && \
 	chown -R tomcat7:tomcat7 /usr/local/wps_grass_bridge && \
 	chown tomcat7:tomcat7 /var/grass/tmp && \
-	chown -R tomcat7:tomcat7 /usr/share/tomcat7-wps/wps
+	chown -R tomcat7:tomcat7 /usr/share/tomcat7-wps/wps && \
+    mkdir -p /usr/share/tomcat7/R/x86_64-pc-linux-gnu-library/3.2/ && \
+    chown -R tomcat7:tomcat7 /usr/share/tomcat7/R/x86_64-pc-linux-gnu-library/3.2
 
 # For debugging
 COPY wps/logback_debug.xml /usr/share/tomcat7-wps/wps/WEB-INF/classes/logback.xml
