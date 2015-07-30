@@ -638,8 +638,8 @@
 			className="org.n52.wps.server.UploadedAlgorithmRepository" active="false">
 		</Repository>
 		<Repository name="GrassRepository" className="org.n52.wps.server.grass.GrassProcessRepository" active="true">
-          <Property name="GISRC_Dir" active="true">/usr/local/grass-7.0.0svn/demolocation/.grassrc70</Property>
-          <Property name="Grass_Home" active="true">/usr/local/grass-7.0.0svn</Property>
+          <Property name="GISRC_Dir" active="true">/usr/local/grass-7.0.1svn/demolocation/.grassrc70</Property>
+          <Property name="Grass_Home" active="true">/usr/local/grass-7.0.1svn</Property>
           <Property name="ModuleStarter_Home" active="true">/usr/local/wps_grass_bridge/gms</Property>
           <Property name="Python_Home" active="true">/usr/bin</Property>
           <Property name="Python_Path" active="true">/usr/lib/python2.7</Property>
@@ -906,7 +906,7 @@
 			</Repository> -->
 		<Repository name="SextanteRepository"
 			className="org.n52.wps.server.sextante.SextanteProcessRepository"
-			active="false">
+			active="true">
 			<Property name="Algorithm" active="true">visibility</Property>
 			<Property name="Algorithm" active="true">recttopolar</Property>
 			<Property name="Algorithm" active="true">crossclassification</Property>

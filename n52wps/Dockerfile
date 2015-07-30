@@ -228,19 +228,20 @@ WORKDIR /usr/local/wps_grass_bridge
 COPY wps/wps-grass-bridge-patched.zip /usr/local/wps_grass_bridge/
 RUN unzip wps-grass-bridge-patched.zip && \
 	rm wps-grass-bridge-patched.zip && \
-	mkdir -p /var/grass/tmp
+	mkdir -p /var/grass/tmp/grass_home
+COPY GrassModuleStarter.py /usr/local/wps_grass_bridge/gms/
 
 # Bug fix for Ubuntu Python
 # see: http://stackoverflow.com/questions/15608236/eclipse-and-google-app-engine-importerror-no-module-named-sysconfigdata-nd-u
 RUN ln -s /usr/lib/python2.7/plat-*/_sysconfigdata_nd.py /usr/lib/python2.7/
 
 # Set Permissions
-RUN mkdir -p /usr/local/grass-7.0.0svn/demolocation && \
-	mkdir -p /usr/local/grass-7.0.0svn/demolocation/PERMANENT && \
-	chown tomcat7:tomcat7 /usr/local/grass-7.0.0svn/demolocation && \
-	chown tomcat7:tomcat7 /usr/local/grass-7.0.0svn/demolocation/PERMANENT && \
+RUN mkdir -p /usr/local/grass-7.0.1svn/demolocation && \
+	mkdir -p /usr/local/grass-7.0.1svn/demolocation/PERMANENT && \
+	chown tomcat7:tomcat7 /usr/local/grass-7.0.1svn/demolocation && \
+	chown tomcat7:tomcat7 /usr/local/grass-7.0.1svn/demolocation/PERMANENT && \
 	chown -R tomcat7:tomcat7 /usr/local/wps_grass_bridge && \
-	chown tomcat7:tomcat7 /var/grass/tmp && \
+	chown -R tomcat7:tomcat7 /var/grass/tmp && \
 	chown -R tomcat7:tomcat7 /usr/share/tomcat7-wps/wps && \
     mkdir -p /usr/share/tomcat7/R/x86_64-pc-linux-gnu-library/3.2/ && \
     chown -R tomcat7:tomcat7 /usr/share/tomcat7/R/x86_64-pc-linux-gnu-library/3.2
