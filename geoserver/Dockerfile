@@ -1,10 +1,10 @@
-# GeoServer 2.7.0
+# GeoServer 2.8.2
 # Oracle JRE 1.7
-
+# Tomcat 7
 
 FROM ubuntu:14.04
 
-MAINTAINER Nathan Swain nathan.swain@byu.net
+MAINTAINER Nathan Swain nswain@aquaveo.com
 
 # Apt setup -----------------------------------------------------------------------------------------------------------#
 RUN apt-get update -y && apt-get upgrade -y
@@ -78,7 +78,7 @@ COPY web.xml /var/lib/tomcat7/webapps/geoserver/WEB-INF/web.xml
 
 # Set Heap Settings for Tomcat
 # See: http://docs.geoserver.org/stable/en/user/production/container.html
-ENV CATALINA_OPTS -Xmx8192m -Xms48m -XX:SoftRefLRUPolicyMSPerMB=36000 -XX:MaxPermSize=1024m
+ENV CATALINA_OPTS -Xmx2048m -Xms1024m -XX:SoftRefLRUPolicyMSPerMB=36000 -XX:MaxPermSize=1024m
 
 # Add startup script --------------------------------------------------------------------------------------------------#
 COPY startup.sh /usr/local/bin/startup.sh

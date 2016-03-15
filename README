@@ -5,3 +5,16 @@ This project houses the source Dockerfiles and resources for the Tethys Apps pro
 
 See the README files in the respective directory for more details.
 
+# REMOVE ALL STOPPED CONTAINERS
+sudo docker rm -v $(sudo docker ps -a -q)
+
+# REMOVE ALL UNTAGGED IMAGES
+sudo docker rmi $(sudo docker images | grep '^<none>' | awk '{print $3}')
+
+# Unmount
+umount $(grep 'aufs' /proc/mounts | awk '{print$2}’ | sort -r)
+
+# DOCKER VOLUMES ARE LOCATED HERE (FOR MANUAL CLEANUP):
+sudo ls /var/lib/docker/vfs/dir
+
+
