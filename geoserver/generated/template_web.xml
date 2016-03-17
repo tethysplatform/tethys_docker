@@ -1,12 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE web-app PUBLIC "-//Sun Microsystems, Inc.//DTD Web Application 2.3//EN" "http://java.sun.com/dtd/web-app_2_3.dtd">
 <web-app>
-    <display-name>GeoServer</display-name>
-    <context-param>
-      <param-name>GEOSERVER_DATA_DIR</param-name>
-      <param-value>/var/lib/geoserver/data</param-value>
-    </context-param>
-      <context-param>
+  <display-name>GeoServer</display-name>
+  
+  <context-param>
     <param-name>serviceStrategy</param-name>
     <!-- Meaning of the different values :
          
@@ -45,25 +42,32 @@
   
   <!--Can be true or false (defaults to: false). -->
   <!--When true the JSONP (text/javascript) output format is enabled -->
-
   <context-param>
     <param-name>ENABLE_JSONP</param-name>
     <param-value>true</param-value>
   </context-param>
-
     <!-- 
     <context-param>
       <param-name>PROXY_BASE_URL</param-name>
       <param-value>http://82.58.146.45/geoserver</param-value>
     </context-param>
      -->
-   
-     <!--
     <context-param>
        <param-name>GEOSERVER_DATA_DIR</param-name>
-        <param-value>C:\eclipse\workspace\geoserver_trunk\cite\confCiteWFSPostGIS</param-value>
-    </context-param> 
-   -->
+       <param-value>{{ data_dir }}</param-value>
+    </context-param>
+    <context-param>
+       <param-name>GEOSERVER_LOG_LOCATION</param-name>
+       <param-value>{{ data_dir }}/logs/geoserver_tomcat{{ node_id }}.log</param-value>
+    </context-param>
+    <context-param>
+       <param-name>GWC_DISKQUOTA_DISABLED</param-name>
+       <param-value>true</param-value>
+    </context-param>
+    <context-param>
+       <param-name>GWC_METASTORE_DISABLED</param-name>
+       <param-value>true</param-value>
+    </context-param>
     
     <!-- pick up all spring application contexts -->
     <context-param>
@@ -78,7 +82,7 @@
      
     <filter>
       <filter-name>Set Character Encoding</filter-name>
-      <filter-class>org.vfny.geoserver.filters.SetCharacterEncodingFilter</filter-class>
+      <filter-class>org.springframework.web.filter.CharacterEncodingFilter</filter-class>
       <init-param>
         <param-name>encoding</param-name>
         <param-value>UTF-8</param-value>
@@ -256,6 +260,10 @@
     <mime-mapping>
       <extension>sld</extension>
       <mime-type>text/xml</mime-type>
+    </mime-mapping>
+    <mime-mapping>
+      <extension>json</extension>
+      <mime-type>application/json</mime-type>
     </mime-mapping>
   
     <welcome-file-list>

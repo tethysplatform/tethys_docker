@@ -10,6 +10,7 @@ MAINTAINER Nathan Swain nswain@aquaveo.com
 RUN apt-get update -y && apt-get upgrade -y
 RUN apt-get install -y wget sudo ssh unzip vim
 RUN apt-get install -y software-properties-common python-software-properties
+RUN apt-get install -y python-pip python-dev nginx supervisor
 
 # Install Java and Tomcat ---------------------------------------------------------------------------------------------#
 RUN echo oracle-java7-installer shared/accepted-oracle-license-v1-1 select true | debconf-set-selections && \
@@ -21,8 +22,6 @@ RUN echo oracle-java7-installer shared/accepted-oracle-license-v1-1 select true 
 
 # JAVA_HOME variable
 ENV JAVA_HOME /usr/lib/jvm/java-7-oracle
-
-RUN apt-get update && apt-get install -y tomcat7
 
 # Install JAI and JAI Image I/O ---------------------------------------------------------------------------------------#
 WORKDIR /tmp
@@ -56,42 +55,80 @@ RUN wget http://download.java.net/media/jai/builds/release/1_1_3/jai-1_1_3-lib-l
 COPY local_policy.jar $JAVA_HOME/jre/lib/security/local_policy.jar
 COPY US_export_policy.jar $JAVA_HOME/jre/lib/security/US_export_policy.jar
 
-# Setup supervisor ----------------------------------------------------------------------------------------------------#
-RUN apt-get update && apt-get install -y supervisor
-COPY supervisord.conf /etc/supervisor/conf.d/
+# Setup Tomcat, GeoServer Cluster, and NGINX Load Balance -------------------------------------------------------------#
+ENV GEOSERVER_HOME /var/geoserver
+ENV CATALINA_HOME /var/tomcat
+ENV GEOSERVER_DATA_DIR /var/geoserver/data
+ENV MAX_NODES 3
 
-# Download GeoServer and Configure ------------------------------------------------------------------------------------#
-ENV GEOSERVER_DATA_DIR /var/lib/geoserver/data
-ENV GEOSERVER_HOME /var/lib/tomcat7/webapps/geoserver
+COPY apache-tomcat-7.tar.gz /tmp/
+COPY geoserver* /tmp/
+COPY generated/gen_* /tmp/
+COPY generated/template_* /tmp/
+COPY generated/requirements.txt /tmp/
 
-# Unpack the war and make a new data directory
-COPY geoserver.war /var/lib/tomcat7/webapps/geoserver/geoserver.war
-WORKDIR /var/lib/tomcat7/webapps/geoserver
-RUN jar -xvf geoserver.war && \
-    mv geoserver.war ../ && \
-    mkdir -p /var/lib/geoserver/ && \
-    cp -r data /var/lib/geoserver && \
-    chown -R tomcat7:tomcat7 $GEOSERVER_DATA_DIR
+RUN pip install --upgrade pip && \
+    pip install -r requirements.txt && \
+    rm requirements.txt
 
-# Custom GeoServer Web Config
-COPY web.xml /var/lib/tomcat7/webapps/geoserver/WEB-INF/web.xml
+RUN tar zxf apache-tomcat-7.tar.gz && \
+    mv apache-tomcat-7.0.68 $CATALINA_HOME && \
+    rm apache-tomcat-7.tar.gz && \
+    mkdir -p $GEOSERVER_HOME/data/ && \
+    mkdir -p $GEOSERVER_HOME/node/ && \
+    mkdir -p $GEOSERVER_HOME/node/conf/ && \
+    mkdir -p $GEOSERVER_HOME/node/logs/ && \
+    mkdir -p $GEOSERVER_HOME/node/temp/ && \
+    mkdir -p $GEOSERVER_HOME/node/work/ && \
+    mkdir -p $GEOSERVER_HOME/node/webapps/geoserver/ && \
+    cp $CATALINA_HOME/conf/web.xml $GEOSERVER_HOME/node/conf/ && \
+    mv geoserver.war $GEOSERVER_HOME/node/webapps/geoserver/ && \
+    cd $GEOSERVER_HOME/node/webapps/geoserver && \
+    jar -xvf geoserver.war && \
+    rm geoserver.war && \
+    cd /tmp && \
+    mv geoserver-jms-cluster-plugin.zip $GEOSERVER_HOME/node/webapps/geoserver/WEB-INF/lib && \
+    mv geoserver-css-plugin.zip $GEOSERVER_HOME/node/webapps/geoserver/WEB-INF/lib && \
+    mv geoserver-control-flow-plugin.zip $GEOSERVER_HOME/node/webapps/geoserver/WEB-INF/lib && \
+    cd $GEOSERVER_HOME/node/webapps/geoserver/WEB-INF/lib && \
+    unzip geoserver-jms-cluster-plugin.zip && \
+    unzip geoserver-css-plugin.zip && \
+    unzip geoserver-control-flow-plugin.zip && \
+    rm geoserver-jms-cluster-plugin.zip && \
+    rm geoserver-css-plugin.zip && \
+    rm geoserver-control-flow-plugin.zip && \
+    cd /tmp && \
+    mv $GEOSERVER_HOME/node/webapps/geoserver/data/* $GEOSERVER_HOME/data/ && \
+    python gen_nodes.py && \
+    python gen_nginx.py && \
+    python gen_supervisord.py && \
+    rm -rf $GEOSERVER_HOME/node && \
+    rm template_* && \
+    rm gen_*
 
-# Set Heap Settings for Tomcat
-# See: http://docs.geoserver.org/stable/en/user/production/container.html
-ENV CATALINA_OPTS -Xmx2048m -Xms1024m -XX:SoftRefLRUPolicyMSPerMB=36000 -XX:MaxPermSize=1024m
+RUN echo "/tmp" && \
+    ls -al && \
+    echo "/var/geoserver" && \
+    ls -al /var/geoserver && \
+    echo "/var/geoserver/node1/webapps/geoserver/data" && \
+    ls -al $GEOSERVER_HOME/node1/webapps/geoserver/data && \
+    echo "/var/geoserver/data" && \
+    ls -al $GEOSERVER_HOME/data
+
+WORKDIR $GEOSERVER_HOME
 
 # Add startup script --------------------------------------------------------------------------------------------------#
-COPY startup.sh /usr/local/bin/startup.sh
-RUN chmod +x /usr/local/bin/startup.sh
+COPY startup.sh $GEOSERVER_HOME/startup.sh
+RUN chmod +x $GEOSERVER_HOME/startup.sh
 
-# Ports
-EXPOSE 8080
+## Ports
+EXPOSE 8080 8081 8082 8083
 
-# Add VOLUMEs to for inspection, datastorage, and backup --------------------------------------------------------------#
-VOLUME  ["/var/log/tomcat7", "/var/log/supervisor", "/var/lib/geoserver/data", "/var/lib/tomcat7/webapps/geoserver"]
+## Add VOLUMEs to for inspection, datastorage, and backup --------------------------------------------------------------#
+#VOLUME  ["/var/log/tomcat7", "/var/log/supervisor", "/var/lib/geoserver/data", "/var/lib/tomcat7/webapps/geoserver"]
 
-# Startup
-CMD ["/usr/local/bin/startup.sh"]
+## Startup
+CMD $GEOSERVER_HOME/startup.sh
 
 
 

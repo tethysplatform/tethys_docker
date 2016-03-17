@@ -1,0 +1,24 @@
+upstream backend {
+  {% for port in http_ports %}
+  server localhost:{{ port }};
+  {% endfor %}
+}
+
+server {
+  listen 8080;
+
+  server_name localhost;
+  resolver localhost;
+
+  location / {
+    proxy_pass http://backend;
+  }
+
+  location /geoserver/web/ {
+    proxy_pass http://localhost:{{ http_ports[0] }};
+  }
+
+  location /geoserver/rest/ {
+    proxy_pass http://localhost:{{ http_ports[0] }};
+  }
+}
