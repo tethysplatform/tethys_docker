@@ -1,7 +1,10 @@
 export CATALINA_BASE=$GEOSERVER_HOME/node{{ node_id }}
 export CATALINA_TMPDIR=$CATALINA_BASE/temp
 export JRE_HOME=$JAVA_HOME/jre
-export CLUSTER_CONFIG_DIR=$GEOSERVER_DATA_DIR/cluster/{{ node_id }}
+export CLUSTER_CONFIG_DIR=$GEOSERVER_DATA_DIR/cluster/log/{{ node_id }}
+{% if child_node %}
+export GEOSERVER_CONSOLE_DISABLED=true
+{% endif %}
 
 # Heap Settings for Tomcat
 # See: http://docs.geoserver.org/stable/en/user/production/container.html

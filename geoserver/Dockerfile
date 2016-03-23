@@ -59,11 +59,12 @@ COPY US_export_policy.jar $JAVA_HOME/jre/lib/security/US_export_policy.jar
 ENV GEOSERVER_HOME /var/geoserver
 ENV CATALINA_HOME /var/tomcat
 ENV GEOSERVER_DATA_DIR /var/geoserver/data
-ENV MAX_NODES 3
+ENV MAX_NODES 10
+ENV ENABLED_NODES 2
 
 COPY apache-tomcat-7.tar.gz /tmp/
 COPY geoserver* /tmp/
-COPY generated/gen_* /tmp/
+COPY generated/gen_dynamic_files.py /tmp/
 COPY generated/template_* /tmp/
 COPY generated/requirements.txt /tmp/
 
@@ -99,30 +100,22 @@ RUN tar zxf apache-tomcat-7.tar.gz && \
     rm geoserver-control-flow-plugin.zip && \
     cd /tmp && \
     mv $GEOSERVER_HOME/node/webapps/geoserver/data/* $GEOSERVER_HOME/data/ && \
-    python gen_nodes.py && \
-    python gen_nginx.py && \
-    python gen_supervisord.py && \
+    python gen_dynamic_files.py && \
     rm -rf $GEOSERVER_HOME/node && \
     rm template_* && \
-    rm gen_*
-
-RUN echo "/tmp" && \
-    ls -al && \
-    echo "/var/geoserver" && \
-    ls -al /var/geoserver && \
-    echo "/var/geoserver/node1/webapps/geoserver/data" && \
-    ls -al $GEOSERVER_HOME/node1/webapps/geoserver/data && \
-    echo "/var/geoserver/data" && \
-    ls -al $GEOSERVER_HOME/data
+    rm gen_dynamic_files.py
 
 WORKDIR $GEOSERVER_HOME
 
 # Add startup script --------------------------------------------------------------------------------------------------#
-COPY startup.sh $GEOSERVER_HOME/startup.sh
+COPY startup.sh $GEOSERVER_HOME/
+COPY generate_geoserver_startup.py $GEOSERVER_HOME/
+COPY generated/template_geoserver_startup.sh $GEOSERVER_HOME/
+COPY supervisord.conf $GEOSERVER_HOME/
 RUN chmod +x $GEOSERVER_HOME/startup.sh
 
 ## Ports
-EXPOSE 8080 8081 8082 8083
+EXPOSE 8080
 
 ## Add VOLUMEs to for inspection, datastorage, and backup --------------------------------------------------------------#
 #VOLUME  ["/var/log/tomcat7", "/var/log/supervisor", "/var/lib/geoserver/data", "/var/lib/tomcat7/webapps/geoserver"]
