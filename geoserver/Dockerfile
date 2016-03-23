@@ -60,19 +60,17 @@ ENV GEOSERVER_HOME /var/geoserver
 ENV CATALINA_HOME /var/tomcat
 ENV GEOSERVER_DATA_DIR /var/geoserver/data
 ENV MAX_NODES 10
-ENV ENABLED_NODES 2
+ENV ENABLED_NODES 1
+ENV REST_NODES 1
 
 COPY apache-tomcat-7.tar.gz /tmp/
 COPY geoserver* /tmp/
-COPY generated/gen_dynamic_files.py /tmp/
-COPY generated/template_* /tmp/
-COPY generated/requirements.txt /tmp/
+COPY generated/* /tmp/
 
 RUN pip install --upgrade pip && \
     pip install -r requirements.txt && \
-    rm requirements.txt
-
-RUN tar zxf apache-tomcat-7.tar.gz && \
+    rm requirements.txt && \
+    tar zxf apache-tomcat-7.tar.gz && \
     mv apache-tomcat-7.0.68 $CATALINA_HOME && \
     rm apache-tomcat-7.tar.gz && \
     mkdir -p $GEOSERVER_HOME/data/ && \
@@ -100,25 +98,24 @@ RUN tar zxf apache-tomcat-7.tar.gz && \
     rm geoserver-control-flow-plugin.zip && \
     cd /tmp && \
     mv $GEOSERVER_HOME/node/webapps/geoserver/data/* $GEOSERVER_HOME/data/ && \
-    python gen_dynamic_files.py && \
+    python gen_build_time_dynamic_files.py && \
     rm -rf $GEOSERVER_HOME/node && \
-    rm template_* && \
-    rm gen_dynamic_files.py
+    rm template_catalina.sh && \
+    rm template_server.xml && \
+    rm template_web.xml && \
+    rm gen_build_time_dynamic_files.py
 
 WORKDIR $GEOSERVER_HOME
 
 # Add startup script --------------------------------------------------------------------------------------------------#
 COPY startup.sh $GEOSERVER_HOME/
-COPY generate_geoserver_startup.py $GEOSERVER_HOME/
-COPY generated/template_geoserver_startup.sh $GEOSERVER_HOME/
-COPY supervisord.conf $GEOSERVER_HOME/
 RUN chmod +x $GEOSERVER_HOME/startup.sh
 
 ## Ports
 EXPOSE 8080
 
-## Add VOLUMEs to for inspection, datastorage, and backup --------------------------------------------------------------#
-#VOLUME  ["/var/log/tomcat7", "/var/log/supervisor", "/var/lib/geoserver/data", "/var/lib/tomcat7/webapps/geoserver"]
+## Add VOLUMEs to for inspection, datastorage, and backup -------------------------------------------------------------#
+VOLUME  ["/var/log/supervisor", "/var/geoserver/data", "/var/geoserver"]
 
 ## Startup
 CMD $GEOSERVER_HOME/startup.sh
