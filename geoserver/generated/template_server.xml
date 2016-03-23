@@ -69,7 +69,8 @@
     -->
     <Connector port="{{ http_port }}" protocol="HTTP/1.1"
                connectionTimeout="20000"
-               redirectPort="{{ redirect_port }}" />
+               redirectPort="{{ redirect_port }}"
+               maxThreads="20" minSpareThreads="20"/>
     <!-- A "Connector" using the shared thread pool-->
     <!--
     <Connector executor="tomcatThreadPool"

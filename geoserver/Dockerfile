@@ -59,7 +59,7 @@ COPY US_export_policy.jar $JAVA_HOME/jre/lib/security/US_export_policy.jar
 ENV GEOSERVER_HOME /var/geoserver
 ENV CATALINA_HOME /var/tomcat
 ENV GEOSERVER_DATA_DIR /var/geoserver/data
-ENV MAX_NODES 10
+ENV MAX_NODES 4
 ENV ENABLED_NODES 1
 ENV REST_NODES 1
 
