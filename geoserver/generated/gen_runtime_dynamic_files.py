@@ -9,6 +9,7 @@
 """
 import os
 import sys
+import shutil
 from jinja2 import FileSystemLoader, Environment
 
 
@@ -24,6 +25,20 @@ def render_and_write_to_file(context, template, filename):
     file_contents = render_from_template(template_directory, template, **context)
     with open(filename, 'w') as f:
         f.write(file_contents)
+
+
+def move_data_dir(geoserver_home, geoserver_data_dir):
+    tmp_data_dir = os.path.join(geoserver_home, 'tmp_data')
+    try:
+        dir_list = os.listdir(tmp_data_dir)
+        for item in dir_list:
+            shutil.move(os.path.join(tmp_data_dir, item), geoserver_data_dir)
+    except shutil.Error:
+        sys.stdout.write('WARNING: Could not copy sample data into data dir because the data already exists.')
+    try:
+        shutil.rmtree(tmp_data_dir)
+    except:
+        pass
 
 
 def gen_supervisord(num_enabled_nodes, supervisor_config):
@@ -143,6 +158,7 @@ if '__main__' in __name__:
 
     # Create files that are dynamic at runtime
     if not os.path.isfile(supervisor_config):
+        move_data_dir(geoserver_data_dir=GEOSERVER_DATA_DIR, geoserver_home=GEOSERVER_HOME)
         gen_supervisord(num_enabled_nodes=num_enabled_nodes, supervisor_config=supervisor_config)
         gen_nginx(num_enabled_nodes=num_enabled_nodes, num_rest_nodes=num_rest_nodes,
                   default_http_port=DEFAULT_HTTP_PORT)

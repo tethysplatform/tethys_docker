@@ -74,6 +74,7 @@ RUN pip install --upgrade pip && \
     mv apache-tomcat-7.0.68 $CATALINA_HOME && \
     rm apache-tomcat-7.tar.gz && \
     mkdir -p $GEOSERVER_HOME/data/ && \
+    mkdir -p $GEOSERVER_HOME/tmp_data/ && \
     mkdir -p $GEOSERVER_HOME/node/ && \
     mkdir -p $GEOSERVER_HOME/node/conf/ && \
     mkdir -p $GEOSERVER_HOME/node/logs/ && \
@@ -103,7 +104,7 @@ RUN pip install --upgrade pip && \
     rm geoserver-netcdf-plugin.zip && \
     rm geoserver-netcdf-out-plugin.zip && \
     cd /tmp && \
-    mv $GEOSERVER_HOME/node/webapps/geoserver/data/* $GEOSERVER_HOME/data/ && \
+    mv $GEOSERVER_HOME/node/webapps/geoserver/data/* $GEOSERVER_HOME/tmp_data/ && \
     python gen_build_time_dynamic_files.py && \
     rm -rf $GEOSERVER_HOME/node && \
     rm template_catalina.sh && \
