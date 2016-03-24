@@ -89,13 +89,19 @@ RUN pip install --upgrade pip && \
     mv geoserver-jms-cluster-plugin.zip $GEOSERVER_HOME/node/webapps/geoserver/WEB-INF/lib && \
     mv geoserver-css-plugin.zip $GEOSERVER_HOME/node/webapps/geoserver/WEB-INF/lib && \
     mv geoserver-control-flow-plugin.zip $GEOSERVER_HOME/node/webapps/geoserver/WEB-INF/lib && \
+    mv geoserver-netcdf-out-plugin.zip $GEOSERVER_HOME/node/webapps/geoserver/WEB-INF/lib && \
+    mv geoserver-netcdf-plugin.zip $GEOSERVER_HOME/node/webapps/geoserver/WEB-INF/lib && \
     cd $GEOSERVER_HOME/node/webapps/geoserver/WEB-INF/lib && \
-    unzip geoserver-jms-cluster-plugin.zip && \
-    unzip geoserver-css-plugin.zip && \
-    unzip geoserver-control-flow-plugin.zip && \
+    unzip -o geoserver-jms-cluster-plugin.zip && \
+    unzip -o geoserver-css-plugin.zip && \
+    unzip -o geoserver-control-flow-plugin.zip && \
+    unzip -o geoserver-netcdf-out-plugin.zip && \
+    unzip -o geoserver-netcdf-plugin.zip && \
     rm geoserver-jms-cluster-plugin.zip && \
     rm geoserver-css-plugin.zip && \
     rm geoserver-control-flow-plugin.zip && \
+    rm geoserver-netcdf-plugin.zip && \
+    rm geoserver-netcdf-out-plugin.zip && \
     cd /tmp && \
     mv $GEOSERVER_HOME/node/webapps/geoserver/data/* $GEOSERVER_HOME/data/ && \
     python gen_build_time_dynamic_files.py && \
