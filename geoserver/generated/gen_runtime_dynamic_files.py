@@ -26,29 +26,31 @@ def render_and_write_to_file(context, template, filename):
         f.write(file_contents)
 
 
-def gen_supervisord(enabled_nodes, supervisor_config):
-    context = {'nodes': [i for i in range(1, enabled_nodes + 1)]}
-    sys.stdout.write("\nConfiguring supervisord for {0} nodes.\n".format(enabled_nodes))
+def gen_supervisord(num_enabled_nodes, supervisor_config):
+    context = {'nodes': [node_id for node_id in range(1, num_enabled_nodes + 1)]}
+    sys.stdout.write("\nConfiguring supervisord for {0} nodes.\n".format(num_enabled_nodes))
     render_and_write_to_file(context=context, template='template_supervisord.conf', filename=supervisor_config)
-    sys.stdout.write("Successfully configured supervisord for {0} nodes.\n\n".format(enabled_nodes))
+    sys.stdout.write("Successfully configured supervisord for {0} nodes.\n".format(num_enabled_nodes))
 
 
-def gen_nginx(max_nodes, default_http_port):
+def gen_nginx(num_enabled_nodes, num_rest_nodes, default_http_port):
     """
     Generate the NGINX configuration file, such that it load balances the clustered GeoServers.
     """
     nginx_config = '/etc/nginx/sites-available/default'
-    http_ports = []
 
-    for node_id in range(1, max_nodes + 1):
-        http_port = default_http_port + node_id
-        http_ports.append(str(http_port))
+    http_ports = [str(default_http_port + node_id) for node_id in range(1, num_enabled_nodes + 1)]
+    rest_ports = [str(default_http_port + node_id) for node_id in range(1, num_rest_nodes + 1)]
 
-    context = {'http_ports': http_ports}
+    context = {'http_ports': http_ports,
+               'rest_ports': rest_ports}
 
-    sys.stdout.write("\nConfiguring NGINX load balancer for the following ports: {0}\n".format(', '.join(http_ports)))
+    sys.stdout.write("Configuring NGINX load balancer for HTTP endpoints at the following ports: {0}\n".
+                     format(', '.join(http_ports)))
+    sys.stdout.write("Configuring NGINX load balancer for REST endpoints at the following ports: {0}\n".
+                     format(', '.join(rest_ports)))
     render_and_write_to_file(context=context, template='template_nginx_config', filename=nginx_config)
-    sys.stdout.write("Successfully generated NGINX load balancer config.\n\n")
+    sys.stdout.write("Successfully generated NGINX load balancer config.\n")
 
 
 def gen_controlflow_properties(enabled_nodes, geoserver_data_dir):
@@ -63,7 +65,7 @@ def gen_controlflow_properties(enabled_nodes, geoserver_data_dir):
         timeout = int(os.environ.get('MAX_TIMEOUT', 60))
         num_cores = int(num_cores)
         sys.stdout.write('Configuring controlflow.properties for {0} cores and {1} nodes.\n'.format(
-            num_cores, nodes_to_enable
+            num_cores, num_enabled_nodes
         ))
 
         # Requests per core
@@ -113,27 +115,36 @@ def gen_controlflow_properties(enabled_nodes, geoserver_data_dir):
 
     control_flow_props = os.path.join(geoserver_data_dir, 'controlflow.properties')
     render_and_write_to_file(context=context, template='template_controlflow.properties', filename=control_flow_props)
-    sys.stdout.write("Successfully generated controlflow.properties.\n\n")
+    sys.stdout.write("Successfully generated controlflow.properties.\n")
 
 
 if '__main__' in __name__:
     MAX_NODES = int(os.environ.get('MAX_NODES', '4'))
-    NODES_ENABLED = int(os.environ.get('NODES_ENABLED', '2'))
+    ENABLED_NODES = int(os.environ.get('ENABLED_NODES', '1'))
+    REST_NODES = int(os.environ.get('REST_NODES', '1'))
     GEOSERVER_HOME = os.environ.get('GEOSERVER_HOME', '/')
     GEOSERVER_DATA_DIR = os.environ.get('GEOSERVER_DATA_DIR', '/')
     DEFAULT_HTTP_PORT = 8080
     supervisor_config = os.path.join(GEOSERVER_HOME, 'supervisord.conf')
 
-    if NODES_ENABLED <= 1:
-        nodes_to_enable = 1
-    elif NODES_ENABLED <= MAX_NODES:
-        nodes_to_enable = NODES_ENABLED
+    if ENABLED_NODES <= 1:
+        num_enabled_nodes = 1
+    elif ENABLED_NODES <= MAX_NODES:
+        num_enabled_nodes = ENABLED_NODES
     else:
-        nodes_to_enable = MAX_NODES
+        num_enabled_nodes = MAX_NODES
+
+    if REST_NODES <= 1:
+        num_rest_nodes = 1
+    elif REST_NODES <= num_enabled_nodes:
+        num_rest_nodes = REST_NODES
+    else:
+        num_rest_nodes = num_enabled_nodes
 
     # Create files that are dynamic at runtime
     if not os.path.isfile(supervisor_config):
-        gen_supervisord(enabled_nodes=nodes_to_enable, supervisor_config=supervisor_config)
-        gen_nginx(max_nodes=nodes_to_enable, default_http_port=DEFAULT_HTTP_PORT)
-        gen_controlflow_properties(enabled_nodes=nodes_to_enable, geoserver_data_dir=GEOSERVER_DATA_DIR)
+        gen_supervisord(num_enabled_nodes=num_enabled_nodes, supervisor_config=supervisor_config)
+        gen_nginx(num_enabled_nodes=num_enabled_nodes, num_rest_nodes=num_rest_nodes,
+                  default_http_port=DEFAULT_HTTP_PORT)
+        gen_controlflow_properties(enabled_nodes=num_enabled_nodes, geoserver_data_dir=GEOSERVER_DATA_DIR)
 

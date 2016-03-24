@@ -4,6 +4,12 @@ upstream backend {
   {% endfor %}
 }
 
+upstream rest {
+  {% for rest_port in rest_ports %}
+  server localhost:{{ rest_port }};
+  {% endfor %}
+}
+
 server {
   listen 8080;
 
@@ -19,6 +25,6 @@ server {
   }
 
   location /geoserver/rest/ {
-    proxy_pass http://localhost:{{ http_ports[0] }};
+    proxy_pass http://rest;
   }
 }
