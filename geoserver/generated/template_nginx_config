@@ -11,7 +11,7 @@ upstream rest {
 }
 
 server {
-  listen 8080;
+  listen 8181;
 
   server_name localhost;
   resolver localhost;

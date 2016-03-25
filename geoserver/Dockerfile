@@ -121,7 +121,7 @@ COPY startup.sh $GEOSERVER_HOME/
 RUN chmod +x $GEOSERVER_HOME/startup.sh
 
 ## Ports
-EXPOSE 8080
+EXPOSE 8181 8081 8082 8083 8084
 
 ## Add VOLUMEs to for inspection, datastorage, and backup -------------------------------------------------------------#
 VOLUME  ["/var/log/supervisor", "/var/geoserver/data", "/var/geoserver"]
