@@ -8,6 +8,6 @@ export GEOSERVER_NODE_OPTS="id:node{{ node_id }}"
 
 # Heap Settings for Tomcat
 # See: http://docs.geoserver.org/stable/en/user/production/container.html
-export CATALINA_OPTS="-server -Xmx1024m -Xms1024m -XX:SoftRefLRUPolicyMSPerMB=36000 -XX:MaxPermSize=256m -XX:+UseParallelGC"
+export CATALINA_OPTS="-server -Xmx${MAX_MEMORY}m -Xms${MIN_MEMORY}m -XX:SoftRefLRUPolicyMSPerMB=36000 -XX:MaxPermSize=256m -XX:+UseParallelGC"
 
 $CATALINA_HOME/bin/catalina.sh run

@@ -62,6 +62,8 @@ ENV GEOSERVER_DATA_DIR /var/geoserver/data
 ENV MAX_NODES 4
 ENV ENABLED_NODES 1
 ENV REST_NODES 1
+ENV MAX_MEMORY 1024
+ENV MIN_MEMORY 1024
 
 COPY apache-tomcat-7.tar.gz /tmp/
 COPY geoserver* /tmp/

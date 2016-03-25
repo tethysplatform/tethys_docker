@@ -109,11 +109,11 @@ def gen_controlflow_properties(enabled_nodes, geoserver_data_dir):
     # Otherwise derive from explicit environmental variables or use default 4 core configuration
     else:
         sys.stdout.write('Configuring controlflow.properties.\n')
-        timeout = int(os.environ.get('MAX_TIMEOUT', 60))
-        ows_global = int(os.environ.get('MAX_OWS_GLOBAL', 100))
-        wms_getmap = int(os.environ.get('MAX_WMS_GETMAP', 10))
-        ows_gwc = int(os.environ.get('MAX_OWS_GWC', 16))
-        per_user = int(os.environ.get('MAX_PER_USER', 6))
+        timeout = int(float(os.environ.get('MAX_TIMEOUT', 60)) / enabled_nodes)
+        ows_global = int(float(os.environ.get('MAX_OWS_GLOBAL', 100)) / enabled_nodes)
+        wms_getmap = int(float(os.environ.get('MAX_WMS_GETMAP', 10)) / enabled_nodes)
+        ows_gwc = int(float(os.environ.get('MAX_OWS_GWC', 16)) / enabled_nodes)
+        per_user = int(float(os.environ.get('MAX_PER_USER', 6)) / enabled_nodes)
 
     context = {'timeout': timeout,
                'ows_global': ows_global,
