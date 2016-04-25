@@ -11,6 +11,7 @@ RUN apt-get update -y && apt-get upgrade -y
 RUN apt-get install -y wget sudo ssh unzip vim
 RUN apt-get install -y software-properties-common python-software-properties
 RUN apt-get install -y python-pip python-dev nginx supervisor
+RUN apt-get install -y gdal-bin libgdal-dev
 
 # Install Java and Tomcat ---------------------------------------------------------------------------------------------#
 RUN echo oracle-java7-installer shared/accepted-oracle-license-v1-1 select true | debconf-set-selections && \
@@ -64,6 +65,7 @@ ENV ENABLED_NODES 1
 ENV REST_NODES 1
 ENV MAX_MEMORY 1024
 ENV MIN_MEMORY 1024
+ENV GDAL_DATA /var/geoserver/gdal-data
 
 COPY apache-tomcat-7.tar.gz /tmp/
 COPY geoserver* /tmp/
@@ -94,17 +96,24 @@ RUN pip install --upgrade pip && \
     mv geoserver-control-flow-plugin.zip $GEOSERVER_HOME/node/webapps/geoserver/WEB-INF/lib && \
     mv geoserver-netcdf-out-plugin.zip $GEOSERVER_HOME/node/webapps/geoserver/WEB-INF/lib && \
     mv geoserver-netcdf-plugin.zip $GEOSERVER_HOME/node/webapps/geoserver/WEB-INF/lib && \
+    mv geoserver-2.8.2-gdal-plugin.zip $GEOSERVER_HOME/node/webapps/geoserver/WEB-INF/lib && \
+    mv geoserver-gdal-data.zip $GEOSERVER_HOME && \
     cd $GEOSERVER_HOME/node/webapps/geoserver/WEB-INF/lib && \
     unzip -o geoserver-jms-cluster-plugin.zip && \
     unzip -o geoserver-css-plugin.zip && \
     unzip -o geoserver-control-flow-plugin.zip && \
     unzip -o geoserver-netcdf-out-plugin.zip && \
     unzip -o geoserver-netcdf-plugin.zip && \
+    unzip -o geoserver-2.8.2-gdal-plugin.zip && \
     rm geoserver-jms-cluster-plugin.zip && \
     rm geoserver-css-plugin.zip && \
     rm geoserver-control-flow-plugin.zip && \
     rm geoserver-netcdf-plugin.zip && \
     rm geoserver-netcdf-out-plugin.zip && \
+    rm geoserver-2.8.2-gdal-plugin.zip && \
+    cd $GEOSERVER_HOME && \
+    unzip -o geoserver-gdal-data.zip && \
+    rm geoserver-gdal-data.zip && \
     cd /tmp && \
     mv $GEOSERVER_HOME/node/webapps/geoserver/data/* $GEOSERVER_HOME/tmp_data/ && \
     python gen_build_time_dynamic_files.py && \
