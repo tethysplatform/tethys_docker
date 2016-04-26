@@ -16,6 +16,8 @@ server {
   server_name localhost;
   resolver localhost;
 
+  client_max_body_size 2G;
+
   location / {
     proxy_pass http://backend;
   }
