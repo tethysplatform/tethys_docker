@@ -88,7 +88,6 @@ RUN pip install --upgrade pip && \
     mkdir -p $GEOSERVER_HOME/node/temp/ && \
     mkdir -p $GEOSERVER_HOME/node/work/ && \
     mkdir -p $GEOSERVER_HOME/node/webapps/geoserver && \
-    mkdir -p $GEOSERVER_HOME/gdal-bin && \
     cp $CATALINA_HOME/conf/web.xml $GEOSERVER_HOME/node/conf/ && \
     mv geoserver.war $GEOSERVER_HOME/node/webapps/geoserver/ && \
     cd $GEOSERVER_HOME/node/webapps/geoserver && \
