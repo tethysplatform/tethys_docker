@@ -68,7 +68,7 @@ ENV GDAL_DATA /usr/local/lib/gdal-data
 ENV LD_LIBRARY_PATH /usr/local/lib
 #set to ignore parts requiring license
 #http://demo.geo-solutions.it/share/github/imageio-ext/releases/1.1.X/1.1.12/native/gdal/linux/notes_on_ECW_and_JP2ECW.txt
-ENV GDAL_SKIP JP2ECW JP2MrSID ECW JP2KAK
+ENV GDAL_SKIP JP2ECW
 
 COPY apache-tomcat-7.tar.gz /tmp/
 COPY geoserver* /tmp/
