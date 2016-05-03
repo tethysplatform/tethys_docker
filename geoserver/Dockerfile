@@ -64,6 +64,11 @@ ENV ENABLED_NODES 1
 ENV REST_NODES 1
 ENV MAX_MEMORY 1024
 ENV MIN_MEMORY 1024
+ENV GDAL_DATA /usr/local/lib/gdal-data
+ENV LD_LIBRARY_PATH /usr/local/lib
+#set to ignore parts requiring license
+#http://demo.geo-solutions.it/share/github/imageio-ext/releases/1.1.X/1.1.12/native/gdal/linux/notes_on_ECW_and_JP2ECW.txt
+ENV GDAL_SKIP JP2ECW
 
 COPY apache-tomcat-7.tar.gz /tmp/
 COPY geoserver* /tmp/
@@ -82,7 +87,7 @@ RUN pip install --upgrade pip && \
     mkdir -p $GEOSERVER_HOME/node/logs/ && \
     mkdir -p $GEOSERVER_HOME/node/temp/ && \
     mkdir -p $GEOSERVER_HOME/node/work/ && \
-    mkdir -p $GEOSERVER_HOME/node/webapps/geoserver/ && \
+    mkdir -p $GEOSERVER_HOME/node/webapps/geoserver && \
     cp $CATALINA_HOME/conf/web.xml $GEOSERVER_HOME/node/conf/ && \
     mv geoserver.war $GEOSERVER_HOME/node/webapps/geoserver/ && \
     cd $GEOSERVER_HOME/node/webapps/geoserver && \
@@ -94,17 +99,27 @@ RUN pip install --upgrade pip && \
     mv geoserver-control-flow-plugin.zip $GEOSERVER_HOME/node/webapps/geoserver/WEB-INF/lib && \
     mv geoserver-netcdf-out-plugin.zip $GEOSERVER_HOME/node/webapps/geoserver/WEB-INF/lib && \
     mv geoserver-netcdf-plugin.zip $GEOSERVER_HOME/node/webapps/geoserver/WEB-INF/lib && \
+    mv geoserver-2.8.2-gdal-plugin.zip $GEOSERVER_HOME/node/webapps/geoserver/WEB-INF/lib && \
+    mv geoserver-gdal192-Ubuntu12-gcc4.6.3-x86_64.tar.gz /usr/local/lib && \
+    mv geoserver-gdal-data.zip /usr/local/lib && \
     cd $GEOSERVER_HOME/node/webapps/geoserver/WEB-INF/lib && \
     unzip -o geoserver-jms-cluster-plugin.zip && \
     unzip -o geoserver-css-plugin.zip && \
     unzip -o geoserver-control-flow-plugin.zip && \
     unzip -o geoserver-netcdf-out-plugin.zip && \
     unzip -o geoserver-netcdf-plugin.zip && \
+    unzip -o geoserver-2.8.2-gdal-plugin.zip && \
     rm geoserver-jms-cluster-plugin.zip && \
     rm geoserver-css-plugin.zip && \
     rm geoserver-control-flow-plugin.zip && \
     rm geoserver-netcdf-plugin.zip && \
     rm geoserver-netcdf-out-plugin.zip && \
+    rm geoserver-2.8.2-gdal-plugin.zip && \
+    cd /usr/local/lib && \
+    unzip -o geoserver-gdal-data.zip && \
+    tar xf geoserver-gdal192-Ubuntu12-gcc4.6.3-x86_64.tar.gz && \
+    rm geoserver-gdal-data.zip && \
+    rm geoserver-gdal192-Ubuntu12-gcc4.6.3-x86_64.tar.gz && \
     cd /tmp && \
     mv $GEOSERVER_HOME/node/webapps/geoserver/data/* $GEOSERVER_HOME/tmp_data/ && \
     python gen_build_time_dynamic_files.py && \
