@@ -9,7 +9,7 @@ MAINTAINER Nathan Swain nswain@aquaveo.com
 # Apt setup -----------------------------------------------------------------------------------------------------------#
 RUN apt-get update -y && apt-get upgrade -y
 RUN apt-get install -y wget sudo ssh unzip vim
-RUN apt-get install -y software-properties-common python-software-properties
+RUN apt-get install -y software-properties-common
 RUN apt-get install -y python-pip python-dev nginx supervisor
 
 # Install Java and Tomcat ---------------------------------------------------------------------------------------------#
