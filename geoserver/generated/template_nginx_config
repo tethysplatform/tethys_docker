@@ -1,10 +1,12 @@
 upstream backend {
+  least_conn;
   {% for port in http_ports %}
   server localhost:{{ port }};
   {% endfor %}
 }
 
 upstream rest {
+  least_conn;
   {% for rest_port in rest_ports %}
   server localhost:{{ rest_port }};
   {% endfor %}
@@ -22,11 +24,21 @@ server {
     proxy_pass http://backend;
   }
 
+  # Pass web and login requests to first node
+  location /geoserver/j_spring_security {
+    proxy_pass http://localhost:{{ http_ports[0] }};
+  }
+
   location /geoserver/web/ {
     proxy_pass http://localhost:{{ http_ports[0] }};
   }
 
+  # Pass REST requests to the nodes enabled for REST
   location /geoserver/rest/ {
+    proxy_pass http://rest;
+  }
+
+  location /geoserver/gwc/rest/ {
     proxy_pass http://rest;
   }
 }

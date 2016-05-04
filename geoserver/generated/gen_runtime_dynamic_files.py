@@ -87,24 +87,20 @@ def gen_controlflow_properties(enabled_nodes, geoserver_data_dir):
         ows_global_per_core = 25.0
         wms_getmap_per_core = 2.0
         ows_gwc_per_core = 4.0
-        per_user_per_core = 2.0
 
         # Calculate limits based on cores
         ows_global = ows_global_per_core * num_cores
         wms_getmap = wms_getmap_per_core * num_cores
         ows_gwc = ows_gwc_per_core * num_cores
-        per_user = per_user_per_core * num_cores
 
         # Factor in number of nodes running
         ows_global_per_inst = ows_global / enabled_nodes
         wms_getmap_per_inst = wms_getmap / enabled_nodes
         ows_gwc_per_inst = ows_gwc / enabled_nodes
-        per_user_per_inst = per_user / enabled_nodes
 
         ows_global = int(ows_global_per_inst) if ows_global_per_inst >= 1 else 1
         wms_getmap = int(wms_getmap_per_inst) if wms_getmap_per_inst >= 1 else 1
         ows_gwc = int(ows_gwc_per_inst) if ows_gwc_per_inst >= 1 else 1
-        per_user = int(per_user_per_inst) if per_user_per_inst >= 1 else 1
 
     # Otherwise derive from explicit environmental variables or use default 4 core configuration
     else:
@@ -113,20 +109,17 @@ def gen_controlflow_properties(enabled_nodes, geoserver_data_dir):
         ows_global = int(float(os.environ.get('MAX_OWS_GLOBAL', 100)) / enabled_nodes)
         wms_getmap = int(float(os.environ.get('MAX_WMS_GETMAP', 10)) / enabled_nodes)
         ows_gwc = int(float(os.environ.get('MAX_OWS_GWC', 16)) / enabled_nodes)
-        per_user = int(float(os.environ.get('MAX_PER_USER', 6)) / enabled_nodes)
 
     context = {'timeout': timeout,
                'ows_global': ows_global,
                'wms_getmap': wms_getmap,
-               'ows_gwc': ows_gwc,
-               'per_user': per_user}
+               'ows_gwc': ows_gwc}
 
     sys.stdout.write('Writing controlflow.properties with the following settings:\n')
     sys.stdout.write('  timeout={0}\n'.format(timeout))
     sys.stdout.write('  ows.global={0}\n'.format(ows_global))
     sys.stdout.write('  ows.wms.getmap={0}\n'.format(wms_getmap))
     sys.stdout.write('  ows.gwc={0}\n'.format(ows_gwc))
-    sys.stdout.write('  user={0}\n'.format(per_user))
 
     control_flow_props = os.path.join(geoserver_data_dir, 'controlflow.properties')
     render_and_write_to_file(context=context, template='template_controlflow.properties', filename=control_flow_props)
