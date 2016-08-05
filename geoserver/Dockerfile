@@ -102,6 +102,7 @@ RUN pip install --upgrade pip && \
     mv geoserver-2.8.2-gdal-plugin.zip $GEOSERVER_HOME/node/webapps/geoserver/WEB-INF/lib && \
     mv geoserver-gdal192-Ubuntu12-gcc4.6.3-x86_64.tar.gz /usr/local/lib && \
     mv geoserver-gdal-data.zip /usr/local/lib && \
+    mv geoserver-2.8.2-pyramid-plugin.zip $GEOSERVER_HOME/node/webapps/geoserver/WEB-INF/lib && \
     cd $GEOSERVER_HOME/node/webapps/geoserver/WEB-INF/lib && \
     unzip -o geoserver-jms-cluster-plugin.zip && \
     unzip -o geoserver-css-plugin.zip && \
@@ -109,12 +110,14 @@ RUN pip install --upgrade pip && \
     unzip -o geoserver-netcdf-out-plugin.zip && \
     unzip -o geoserver-netcdf-plugin.zip && \
     unzip -o geoserver-2.8.2-gdal-plugin.zip && \
+    unzip -o geoserver-2.8.2-pyramid-plugin.zip && \
     rm geoserver-jms-cluster-plugin.zip && \
     rm geoserver-css-plugin.zip && \
     rm geoserver-control-flow-plugin.zip && \
     rm geoserver-netcdf-plugin.zip && \
     rm geoserver-netcdf-out-plugin.zip && \
     rm geoserver-2.8.2-gdal-plugin.zip && \
+    rm geoserver-2.8.2-pyramid-plugin.zip && \
     cd /usr/local/lib && \
     unzip -o geoserver-gdal-data.zip && \
     tar xf geoserver-gdal192-Ubuntu12-gcc4.6.3-x86_64.tar.gz && \
