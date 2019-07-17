@@ -1,27 +1,11 @@
-# GeoServer 2.8.2
-# Oracle JRE 1.7
-# Tomcat 7
-
-FROM ubuntu:14.04
+FROM tomcat:9-jdk8-openjdk
 
 MAINTAINER Nathan Swain nswain@aquaveo.com
 
 # Apt setup -----------------------------------------------------------------------------------------------------------#
 RUN apt-get update -y && apt-get upgrade -y
-RUN apt-get install -y wget sudo ssh unzip vim
 RUN apt-get install -y software-properties-common
 RUN apt-get install -y python-pip python-dev nginx supervisor
-
-# Install Java and Tomcat ---------------------------------------------------------------------------------------------#
-RUN echo oracle-java7-installer shared/accepted-oracle-license-v1-1 select true | debconf-set-selections && \
-    add-apt-repository -y ppa:webupd8team/java && \
-    apt-get update && \
-    apt-get install -y oracle-java7-installer && \
-    rm -rf /var/lib/apt/lists/* && \
-    rm -rf /var/cache/oracle-jdk7-installer
-
-# JAVA_HOME variable
-ENV JAVA_HOME /usr/lib/jvm/java-7-oracle
 
 # Install JAI and JAI Image I/O ---------------------------------------------------------------------------------------#
 WORKDIR /tmp
@@ -56,30 +40,28 @@ COPY local_policy.jar $JAVA_HOME/jre/lib/security/local_policy.jar
 COPY US_export_policy.jar $JAVA_HOME/jre/lib/security/US_export_policy.jar
 
 # Setup Tomcat, GeoServer Cluster, and NGINX Load Balance -------------------------------------------------------------#
+ENV GEOSERVER_VERSION 2.15.2
 ENV GEOSERVER_HOME /var/geoserver
-ENV CATALINA_HOME /var/tomcat
 ENV GEOSERVER_DATA_DIR /var/geoserver/data
+ENV GEOSERVER_WEBAPPS /var/geoserver/node/webapps/geoserver
+ENV GEOSERVER_WEBINF /var/geoserver/node/webapps/geoserver/WEB-INF/lib
 ENV MAX_NODES 4
-ENV ENABLED_NODES 1
+ENV ENABLED_NODES 2
 ENV REST_NODES 1
 ENV MAX_MEMORY 1024
-ENV MIN_MEMORY 1024
+ENV MIN_MEMORY 256
 ENV GDAL_DATA /usr/local/lib/gdal-data
 ENV LD_LIBRARY_PATH /usr/local/lib
 #set to ignore parts requiring license
 #http://demo.geo-solutions.it/share/github/imageio-ext/releases/1.1.X/1.1.12/native/gdal/linux/notes_on_ECW_and_JP2ECW.txt
 ENV GDAL_SKIP JP2ECW
 
-COPY apache-tomcat-7.tar.gz /tmp/
 COPY geoserver* /tmp/
-COPY generated/* /tmp/
+COPY geoserver-$GEOSERVER_VERSION-war/geoserver.war /tmp/
+COPY generated/* $GEOSERVER_HOME/generated/
 
-RUN pip install --upgrade pip && \
-    pip install -r requirements.txt && \
-    rm requirements.txt && \
-    tar zxf apache-tomcat-7.tar.gz && \
-    mv apache-tomcat-7.0.68 $CATALINA_HOME && \
-    rm apache-tomcat-7.tar.gz && \
+RUN echo "Setting Up Node Template Directory..." && \
+    ls -al /tmp && ls -al $GEOSERVER_HOME && \
     mkdir -p $GEOSERVER_HOME/data/ && \
     mkdir -p $GEOSERVER_HOME/tmp_data/ && \
     mkdir -p $GEOSERVER_HOME/node/ && \
@@ -87,50 +69,32 @@ RUN pip install --upgrade pip && \
     mkdir -p $GEOSERVER_HOME/node/logs/ && \
     mkdir -p $GEOSERVER_HOME/node/temp/ && \
     mkdir -p $GEOSERVER_HOME/node/work/ && \
-    mkdir -p $GEOSERVER_HOME/node/webapps/geoserver && \
+    mkdir -p $GEOSERVER_WEBAPPS && \
+    echo "Unpacking GeoServer WAR..." && \
     cp $CATALINA_HOME/conf/web.xml $GEOSERVER_HOME/node/conf/ && \
-    mv geoserver.war $GEOSERVER_HOME/node/webapps/geoserver/ && \
-    cd $GEOSERVER_HOME/node/webapps/geoserver && \
+    mv geoserver.war $GEOSERVER_WEBAPPS/ && \
+    cd $GEOSERVER_WEBAPPS && \
     jar -xvf geoserver.war && \
-    rm geoserver.war && \
     cd /tmp && \
-    mv geoserver-jms-cluster-plugin.zip $GEOSERVER_HOME/node/webapps/geoserver/WEB-INF/lib && \
-    mv geoserver-css-plugin.zip $GEOSERVER_HOME/node/webapps/geoserver/WEB-INF/lib && \
-    mv geoserver-control-flow-plugin.zip $GEOSERVER_HOME/node/webapps/geoserver/WEB-INF/lib && \
-    mv geoserver-netcdf-out-plugin.zip $GEOSERVER_HOME/node/webapps/geoserver/WEB-INF/lib && \
-    mv geoserver-netcdf-plugin.zip $GEOSERVER_HOME/node/webapps/geoserver/WEB-INF/lib && \
-    mv geoserver-2.8.2-gdal-plugin.zip $GEOSERVER_HOME/node/webapps/geoserver/WEB-INF/lib && \
-    mv geoserver-gdal192-Ubuntu12-gcc4.6.3-x86_64.tar.gz /usr/local/lib && \
-    mv geoserver-gdal-data.zip /usr/local/lib && \
-    mv geoserver-2.8.2-pyramid-plugin.zip $GEOSERVER_HOME/node/webapps/geoserver/WEB-INF/lib && \
-    cd $GEOSERVER_HOME/node/webapps/geoserver/WEB-INF/lib && \
-    unzip -o geoserver-jms-cluster-plugin.zip && \
-    unzip -o geoserver-css-plugin.zip && \
-    unzip -o geoserver-control-flow-plugin.zip && \
-    unzip -o geoserver-netcdf-out-plugin.zip && \
-    unzip -o geoserver-netcdf-plugin.zip && \
-    unzip -o geoserver-2.8.2-gdal-plugin.zip && \
-    unzip -o geoserver-2.8.2-pyramid-plugin.zip && \
-    rm geoserver-jms-cluster-plugin.zip && \
-    rm geoserver-css-plugin.zip && \
-    rm geoserver-control-flow-plugin.zip && \
-    rm geoserver-netcdf-plugin.zip && \
-    rm geoserver-netcdf-out-plugin.zip && \
-    rm geoserver-2.8.2-gdal-plugin.zip && \
-    rm geoserver-2.8.2-pyramid-plugin.zip && \
-    cd /usr/local/lib && \
-    unzip -o geoserver-gdal-data.zip && \
-    tar xf geoserver-gdal192-Ubuntu12-gcc4.6.3-x86_64.tar.gz && \
-    rm geoserver-gdal-data.zip && \
-    rm geoserver-gdal192-Ubuntu12-gcc4.6.3-x86_64.tar.gz && \
-    cd /tmp && \
-    mv $GEOSERVER_HOME/node/webapps/geoserver/data/* $GEOSERVER_HOME/tmp_data/ && \
-    python gen_build_time_dynamic_files.py && \
+    echo "Installing Extensions..." && \
+    unzip -o geoserver-$GEOSERVER_VERSION-jms-cluster-plugin.zip -d $GEOSERVER_WEBINF && \
+    unzip -o geoserver-$GEOSERVER_VERSION-css-plugin.zip -d $GEOSERVER_WEBINF && \
+    unzip -o geoserver-$GEOSERVER_VERSION-control-flow-plugin.zip -d $GEOSERVER_WEBINF && \
+    unzip -o geoserver-$GEOSERVER_VERSION-netcdf-out-plugin.zip -d $GEOSERVER_WEBINF && \
+    unzip -o geoserver-$GEOSERVER_VERSION-netcdf-plugin.zip -d $GEOSERVER_WEBINF && \
+    unzip -o geoserver-$GEOSERVER_VERSION-gdal-plugin.zip -d $GEOSERVER_WEBINF && \
+    unzip -o geoserver-$GEOSERVER_VERSION-pyramid-plugin.zip -d $GEOSERVER_WEBINF && \
+    echo "Installing GDAL..." && \
+    unzip -o geoserver-gdal-data.zip -d /usr/local/lib && \
+    tar xf geoserver-gdal192-Ubuntu12-gcc4.6.3-x86_64.tar.gz -C /usr/local/lib && \
+    echo "Backing Up Initial Data.." && \
+    mv $GEOSERVER_WEBAPPS/data/* $GEOSERVER_HOME/tmp_data/ && \
+    echo "Creating Build-Time Generated Files..." && \
+    pip install -r $GEOSERVER_HOME/generated/requirements.txt && \
+    python $GEOSERVER_HOME/generated/gen_build_time_dynamic_files.py && \
+    echo "Cleaning Up..." && \
     rm -rf $GEOSERVER_HOME/node && \
-    rm template_catalina.sh && \
-    rm template_server.xml && \
-    rm template_web.xml && \
-    rm gen_build_time_dynamic_files.py
+    rm -rf /tmp/geoserver*
 
 WORKDIR $GEOSERVER_HOME
 
@@ -146,6 +110,3 @@ VOLUME  ["/var/log/supervisor", "/var/geoserver/data", "/var/geoserver", "/etc"]
 
 ## Startup
 CMD $GEOSERVER_HOME/startup.sh
-
-
-
