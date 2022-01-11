@@ -51,3 +51,23 @@ Browse to `<http://localhost:8080/geoserver/web/>`_ to see your running geoserve
 .. note::
 
     The above command will map the Docker's port 8080 to the host 8080. If your port 8080 is not available, modify the command to use a port that works for you. See `Docker Documentation <https://docs.docker.com/>`_ for more information about how to use Docker containers.
+
+
+Build
+-----
+
+1. Download the latest 64-bit JDK 7 tarball for linux (e.g.: jdk-7u<version>-linux-x64.tar.gz) from here: https://www.oracle.com/java/technologies/javase/javase7-archive-downloads.html
+
+2. Place the tarball in the `geoserver` directory, but do not commit.
+
+3. Change into the `geoserver` directory:
+
+::
+
+    cd
+
+4. Run the build command:
+
+::
+
+    docker build -t tethysplatform/geoserver .

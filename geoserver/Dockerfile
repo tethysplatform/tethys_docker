@@ -1,27 +1,23 @@
 # GeoServer 2.8.2
-# Oracle JRE 1.7
+# Oracle JDK 1.7
 # Tomcat 7
+# Ubuntu 21.04
 
-FROM ubuntu:14.04
+FROM ubuntu:21.04
 
-MAINTAINER Nathan Swain nswain@aquaveo.com
+ENV TZ UTC
 
 # Apt setup -----------------------------------------------------------------------------------------------------------#
-RUN apt-get update -y && apt-get upgrade -y
-RUN apt-get install -y wget sudo ssh unzip vim
-RUN apt-get install -y software-properties-common
-RUN apt-get install -y python-pip python-dev nginx supervisor
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && \
+    echo $TZ > /etc/timezone && \
+    apt-get update -y && apt-get upgrade -y && \
+    apt-get install -y wget sudo ssh unzip vim software-properties-common python3-pip python3-dev nginx supervisor && \
+    rm -rf /var/lib/apt/lists/*
 
-# Install Java and Tomcat ---------------------------------------------------------------------------------------------#
-RUN echo oracle-java7-installer shared/accepted-oracle-license-v1-1 select true | debconf-set-selections && \
-    add-apt-repository -y ppa:webupd8team/java && \
-    apt-get update && \
-    apt-get install -y oracle-java7-installer && \
-    rm -rf /var/lib/apt/lists/* && \
-    rm -rf /var/cache/oracle-jdk7-installer
-
-# JAVA_HOME variable
-ENV JAVA_HOME /usr/lib/jvm/java-7-oracle
+# Install Java (Download tarball from https://www.oracle.com/java/technologies/javase/javase7-archive-downloads.html
+ADD jdk-7u80-linux-x64.tar.gz /usr/lib/jvm/
+ENV JAVA_HOME /usr/lib/jvm/jdk1.7.0_80
+ENV PATH ${JAVA_HOME}/bin:${JAVA_HOME}/jre/bin:${PATH}
 
 # Install JAI and JAI Image I/O ---------------------------------------------------------------------------------------#
 WORKDIR /tmp
@@ -71,11 +67,12 @@ ENV LD_LIBRARY_PATH /usr/local/lib
 ENV GDAL_SKIP JP2ECW
 
 COPY apache-tomcat-7.tar.gz /tmp/
+COPY log4j-1.2.17.norce.jar /tmp/
 COPY geoserver* /tmp/
 COPY generated/* /tmp/
 
-RUN pip install --upgrade pip && \
-    pip install -r requirements.txt && \
+RUN pip3 install --upgrade pip && \
+    pip3 install -r requirements.txt && \
     rm requirements.txt && \
     tar zxf apache-tomcat-7.tar.gz && \
     mv apache-tomcat-7.0.68 $CATALINA_HOME && \
@@ -94,6 +91,9 @@ RUN pip install --upgrade pip && \
     jar -xvf geoserver.war && \
     rm geoserver.war && \
     cd /tmp && \
+    # log4j vulnerability patch (see: http://geoserver.org/announcements/2021/12/13/logj4-rce-statement.html)
+    rm $GEOSERVER_HOME/node/webapps/geoserver/WEB-INF/lib/log4j-1.2.14.jar && \
+    mv log4j-1.2.17.norce.jar $GEOSERVER_HOME/node/webapps/geoserver/WEB-INF/lib && \
     mv geoserver-jms-cluster-plugin.zip $GEOSERVER_HOME/node/webapps/geoserver/WEB-INF/lib && \
     mv geoserver-css-plugin.zip $GEOSERVER_HOME/node/webapps/geoserver/WEB-INF/lib && \
     mv geoserver-control-flow-plugin.zip $GEOSERVER_HOME/node/webapps/geoserver/WEB-INF/lib && \
@@ -125,7 +125,7 @@ RUN pip install --upgrade pip && \
     rm geoserver-gdal192-Ubuntu12-gcc4.6.3-x86_64.tar.gz && \
     cd /tmp && \
     mv $GEOSERVER_HOME/node/webapps/geoserver/data/* $GEOSERVER_HOME/tmp_data/ && \
-    python gen_build_time_dynamic_files.py && \
+    python3 gen_build_time_dynamic_files.py && \
     rm -rf $GEOSERVER_HOME/node && \
     rm template_catalina.sh && \
     rm template_server.xml && \
