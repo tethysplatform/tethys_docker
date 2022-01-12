@@ -50,7 +50,7 @@ def gen_nodes(max_nodes, data_dir, geoserver_home, default_shutdown_port, defaul
         # catalina.sh
         catalina_sh = os.path.join(node_dir, 'catalina.sh')
         render_and_write_to_file(context=context, template='template_catalina.sh', filename=catalina_sh)
-        os.chmod(catalina_sh, 0555)
+        os.chmod(catalina_sh, 0o555)
         sys.stdout.write('Successfully created catalina.sh for instance {0}.\n'.format(node_id))
 
         # server.xml
